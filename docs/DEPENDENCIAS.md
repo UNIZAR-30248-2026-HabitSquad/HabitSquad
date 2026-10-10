@@ -9,7 +9,7 @@ de paquetes debe reflejarse aquí.
 | Área | Versión objetivo | Estado |
 | --- | --- | --- |
 | Backend | Python 3.12.x | Instalado y probado localmente con Python 3.12.3 en `backend/.venv`. |
-| Frontend | Node.js 20.x y npm | Acordado como runtime objetivo; la versión exacta y la instalación se documentarán al preparar el frontend. |
+| Frontend | Node.js 22.x (LTS) y npm | Probado localmente con Node.js 22.22.1. Fijado en `frontend/.nvmrc` y en `engines` de `package.json`. |
 | CI | GitHub Actions | El workflow fija `actions/checkout@v7.0.1` y `actions/setup-python@v7.0.0`. El primer workflow de dependencias pasó; el workflow ampliado con pruebas debe validarse al subir estos cambios. |
 
 ## Backend
@@ -101,8 +101,26 @@ globales del sistema.
 
 ## Frontend
 
-Las dependencias de JavaScript se concretarán al preparar el frontend. En esa
-fase se registrarán las versiones exactas en `frontend/package.json` y se
-mantendrá el lockfile de npm para instalaciones reproducibles con `npm ci`.
-También se actualizará este documento con las versiones de Node.js, npm y los
-paquetes que se hayan verificado.
+Las versiones exactas están en [frontend/package.json](../frontend/package.json)
+y el árbol completo en `frontend/package-lock.json`, que se instala con
+`npm ci` para reproducir el entorno.
+
+### Dependencias principales
+
+| Paquete | Versión | Propósito |
+| --- | --- | --- |
+| vite | 8.3.4 | Servidor de desarrollo y build del frontend. |
+| tailwindcss | 4.3.3 | Estilos con clases de utilidad. |
+| @tailwindcss/vite | 4.3.3 | Integración de Tailwind en Vite. |
+| vitest | 5.0.3 | Pruebas de la lógica del frontend. |
+
+Vite 8 requiere Node.js 20.19+ o 22.12+. Se fija Node.js 22 LTS porque
+Node.js 20 terminó su soporte en abril de 2026.
+
+### Estado de validación
+
+- **Comprobado localmente** con Node.js 22.22.1 y npm 9.2.0: `npm ci`,
+  `npm test` (sin tests todavía) y `npm run build` pasan, y el build incluye
+  los estilos de Tailwind.
+- **CI:** el job `frontend` de GitHub Actions ejecuta `npm ci`, `npm test` y
+  `npm run build`.
