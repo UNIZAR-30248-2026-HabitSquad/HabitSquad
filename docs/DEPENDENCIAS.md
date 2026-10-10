@@ -8,9 +8,9 @@ de paquetes debe reflejarse aquí.
 
 | Área | Versión objetivo | Estado |
 | --- | --- | --- |
-| Backend | Python 3.12.x | La resolución de dependencias se comprobó con Python 3.12.3. La instalación y ejecución quedan pendientes del punto de validación de startup. |
+| Backend | Python 3.12.x | Instalado y probado localmente con Python 3.12.3 en `backend/.venv`. |
 | Frontend | Node.js 20.x y npm | Acordado como runtime objetivo; la versión exacta y la instalación se documentarán al preparar el frontend. |
-| CI | GitHub Actions | El workflow inicial fija `actions/checkout@v7.0.1` y `actions/setup-python@v7.0.0`; instalación real pendiente de ejecutar en GitHub Actions. |
+| CI | GitHub Actions | El workflow fija `actions/checkout@v7.0.1` y `actions/setup-python@v7.0.0`. El primer workflow de dependencias pasó; el workflow ampliado con pruebas debe validarse al subir estos cambios. |
 
 ## Backend
 
@@ -83,24 +83,21 @@ ruff --version
 ```
 
 La instalación se debe realizar en el entorno virtual, no sobre los paquetes
-globales del sistema. Los tests y checks propios del backend se añadirán a esta
-guía cuando exista la aplicación y estén configurados sus runners.
+globales del sistema.
 
 ### Estado de validación
 
-- **Comprobado:** pip resolvió todas las versiones fijadas y encontró las
-  distribuciones necesarias usando Python 3.12.3. La comprobación se hizo con
-  `--dry-run`; no instaló paquetes.
-- **Pendiente en CI:** instalar el manifiesto con Python 3.12 y ejecutar las
-  herramientas cuando se configure GitHub Actions. El workflow debe cubrir
-  también los cambios de startup integrados directamente en `main`.
-- **Entorno local:** para desarrollar y ejecutar Django se recomienda instalar
-  las dependencias en `backend/.venv`. La imagen de desarrollo usada para esta
-  preparación no incluye `ensurepip`; se habilitará soporte para crear ese
-  entorno cuando sea necesario para el trabajo local.
-- **Pendiente hasta inicializar Django:** ejecutar los tests, la cobertura y
-  los checks de la aplicación. No se consideran validados solo por resolver
-  las dependencias.
+- **Instalación local comprobada:** las dependencias se instalaron en
+  `backend/.venv` con Python 3.12.3. Django 5.2.18, pytest 9.1.1, coverage
+  7.16.2 y Ruff 0.17.0 arrancan correctamente.
+- **Backend comprobado localmente:** `manage.py check`, migraciones SQLite y
+  consistencia de migraciones pasan; los 10 tests del paquete `usuarios`
+  pasan con 100 % de cobertura.
+- **CI pendiente de validar con estos cambios:** GitHub Actions debe volver a
+  ejecutar instalación, Ruff, checks Django, migraciones y tests después del
+  push que incluya el workflow ampliado.
+- **Entorno local:** el entorno virtual `backend/.venv` está ignorado por Git.
+  No se instalaron paquetes en el Python global del sistema.
 
 ## Frontend
 
