@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  backend-dependencies:
-    name: Backend dependency smoke check
+  backend:
+    name: Backend checks and tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -28,9 +28,24 @@ jobs:
       - name: Install backend dependencies
         run: python -m pip install -r backend/requirements.txt
 
-      - name: Check backend tools
+      - name: Lint backend
+        working-directory: backend
         run: |
-          python -m django --version
-          pytest --version
-          coverage --version
-          ruff --version
+          ruff check .
+          ruff format --check .
+
+      - name: Check Django configuration
+        working-directory: backend
+        run: python manage.py check
+
+      - name: Check migrations
+        working-directory: backend
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Apply migrations
+        working-directory: backend
+        run: python manage.py migrate --noinput
+
+      - name: Test backend
+        working-directory: backend
+        run: pytest --cov=usuarios --cov-report=term-missing --cov-fail-under=100
