@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import identify_hasher
 from django.db import IntegrityError, transaction
 
-from .models import CustomUser
+from usuarios.models import CustomUser
 
 
 @pytest.mark.django_db
