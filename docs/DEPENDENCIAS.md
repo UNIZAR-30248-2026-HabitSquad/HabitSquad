@@ -113,6 +113,8 @@ y el árbol completo en `frontend/package-lock.json`, que se instala con
 | tailwindcss | 4.3.3 | Estilos con clases de utilidad. |
 | @tailwindcss/vite | 4.3.3 | Integración de Tailwind en Vite. |
 | vitest | 5.0.3 | Pruebas de la lógica del frontend. |
+| jsdom | 30.1.2 | DOM simulado para las pruebas de Vitest. |
+| vite-plugin-pwa | 2.0.0 | Genera el manifest y el service worker de la PWA (Workbox). |
 
 Vite 8 requiere Node.js 20.19+ o 22.12+. Se fija Node.js 22 LTS porque
 Node.js 20 terminó su soporte en abril de 2026.
@@ -120,7 +122,9 @@ Node.js 20 terminó su soporte en abril de 2026.
 ### Estado de validación
 
 - **Comprobado localmente** con Node.js 22.22.1 y npm 9.2.0: `npm ci`,
-  `npm test` (sin tests todavía) y `npm run build` pasan, y el build incluye
-  los estilos de Tailwind.
+  `npm test` y `npm run build` pasan, y el build incluye los estilos de
+  Tailwind, el manifest y el service worker.
+- **Comprobado en Chrome** con `npm run preview`: el service worker se activa,
+  el manifest se carga y la aplicación abre sin conexión.
 - **CI:** el job `frontend` de GitHub Actions ejecuta `npm ci`, `npm test` y
   `npm run build`.
