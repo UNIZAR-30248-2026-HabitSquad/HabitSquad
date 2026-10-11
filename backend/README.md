@@ -52,6 +52,15 @@ El endpoint `POST /api/auth/token/` recibe `email` y `password` y devuelve
 un día. Los intentos de inicio de sesión también están limitados a cinco por
 hora y dirección IP.
 
+El endpoint `POST /api/auth/token/refresh/` recibe un token `refresh` y devuelve
+un nuevo `access` y un nuevo `refresh`. Al rotarlo, el token anterior se añade
+a la blacklist y deja de ser válido. La blacklist de SimpleJWT persiste en la
+base de datos; aplica las migraciones con `python manage.py migrate` antes de
+usar el endpoint.
+
+Para entender el ciclo de tokens, sus límites de seguridad y probarlo
+manualmente, consulta la [guía de autenticación JWT](../docs/AUTENTICACION_JWT.md).
+
 ## Usuario
 
 La app `usuarios` contiene el modelo `CustomUser`, su configuración de
@@ -67,6 +76,12 @@ aplicación y sus pruebas:
 ```text
 autenticacion/
 ├── urls.py                     # Agrupa rutas de autenticación
+├── login/                      # Inicio de sesión y emisión de tokens
+│   ├── api/
+│   └── tests/
+├── refresh/                    # Renovación y rotación de tokens
+│   ├── api/
+│   └── tests/
 └── registro/
     ├── api/                    # Endpoints, rutas y serializadores HTTP
     ├── services/               # Operaciones de aplicación y escritura de datos
@@ -78,9 +93,10 @@ usuarios/
 └── tests/                      # Pruebas del modelo de usuario
 ```
 
-El flujo de registro es `api/urls.py` → `api/views.py` →
-`api/serializers.py` → `services/registration.py` → `usuarios.models`.
-Las próximas funcionalidades de login, refresh y logout seguirán la misma
-separación en subdirectorios propios. Solo tendrán modelos bajo
-`usuarios/models/` si necesitan persistir nuevas entidades; no se duplicará
-el modelo de usuario por cada operación de autenticación.
+El flujo de registro es `registro/api/urls.py` → `registro/api/views.py` →
+`registro/api/serializers.py` → `registro/services/registration.py` →
+`usuarios.models`. Login usa SimpleJWT para autenticar y emitir tokens; refresh
+usa SimpleJWT para rotarlos y almacenarlos en blacklist. Cada funcionalidad
+mantiene sus pruebas en su propio `tests/`. Solo se añaden modelos bajo
+`usuarios/models/` si hacen falta nuevas entidades persistentes; no se duplica
+el usuario por cada operación de autenticación.
