@@ -47,6 +47,11 @@ El endpoint `POST /api/auth/register/` recibe `email` y `password`, y devuelve
 `id`, `email` y `date_joined`. El endpoint limita las solicitudes anónimas a
 cinco por hora y dirección IP.
 
+El endpoint `POST /api/auth/token/` recibe `email` y `password` y devuelve
+`access` y `refresh`. El token de acceso dura cinco minutos y el de renovación,
+un día. Los intentos de inicio de sesión también están limitados a cinco por
+hora y dirección IP.
+
 ## Usuario
 
 La app `usuarios` contiene el modelo `CustomUser`, su configuración de
