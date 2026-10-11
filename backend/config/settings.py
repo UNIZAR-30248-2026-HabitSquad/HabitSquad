@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "drf_spectacular",
+    "autenticacion.apps.AutenticacionConfig",
     "usuarios.apps.UsuariosConfig",
 ]
 
@@ -122,3 +124,16 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "usuarios.CustomUser"
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "5/hour",
+    },
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "HabitSquad API",
+    "DESCRIPTION": "API de HabitSquad.",
+    "VERSION": "1.0.0",
+}

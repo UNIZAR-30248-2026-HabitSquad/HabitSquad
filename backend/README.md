@@ -27,7 +27,7 @@ Desde `backend/` con el entorno virtual activado:
 ```bash
 python manage.py migrate
 python manage.py check
-pytest --cov=usuarios --cov-report=term-missing --cov-fail-under=100
+pytest --cov=usuarios --cov=autenticacion --cov-report=term-missing --cov-fail-under=100
 ruff check .
 ruff format --check .
 python manage.py runserver
@@ -37,9 +37,45 @@ La configuración actual usa SQLite y está pensada para desarrollo. La clave
 por defecto de Django es solo local; antes de cualquier despliegue se debe
 definir `DJANGO_SECRET_KEY` mediante la configuración segura del entorno.
 
+## API de registro
+
+Con el servidor iniciado, la documentación interactiva de la API está
+disponible en `http://127.0.0.1:8000/api/docs/` y el esquema OpenAPI en
+`http://127.0.0.1:8000/api/schema/`.
+
+El endpoint `POST /api/auth/register/` recibe `email` y `password`, y devuelve
+`id`, `email` y `date_joined`. El endpoint limita las solicitudes anónimas a
+cinco por hora y dirección IP.
+
 ## Usuario
 
-El usuario personalizado está en la app `usuarios`. Usa un ID
-`BigAutoField`, email único normalizado a minúsculas como identificador de
-autenticación y el manejo de contraseña hasheada de Django. La migración
-inicial se creó después de configurar `AUTH_USER_MODEL`.
+La app `usuarios` contiene el modelo `CustomUser`, su configuración de
+administración y sus pruebas. El modelo usa un ID `BigAutoField`, email único
+normalizado a minúsculas como identificador y el manejo de contraseña hasheada
+de Django. La migración inicial se creó después de configurar `AUTH_USER_MODEL`.
+
+## Organización por funcionalidad
+
+Cada funcionalidad de autenticación separa el transporte HTTP, la lógica de
+aplicación y sus pruebas:
+
+```text
+autenticacion/
+├── urls.py                     # Agrupa rutas de autenticación
+└── registro/
+    ├── api/                    # Endpoints, rutas y serializadores HTTP
+    ├── services/               # Operaciones de aplicación y escritura de datos
+    └── tests/                  # Pruebas de API y servicios
+
+usuarios/
+├── models/                     # Entidades persistentes compartidas
+├── admin.py                   # Integración con Django Admin
+└── tests/                      # Pruebas del modelo de usuario
+```
+
+El flujo de registro es `api/urls.py` → `api/views.py` →
+`api/serializers.py` → `services/registration.py` → `usuarios.models`.
+Las próximas funcionalidades de login, refresh y logout seguirán la misma
+separación en subdirectorios propios. Solo tendrán modelos bajo
+`usuarios/models/` si necesitan persistir nuevas entidades; no se duplicará
+el modelo de usuario por cada operación de autenticación.
