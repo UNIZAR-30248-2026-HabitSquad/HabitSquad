@@ -1,3 +1,4 @@
+import { loginScreen, registroScreen } from './views/acceso.js'
 import { screen } from './views/screen.js'
 import { unirseEscuadronScreen } from './views/unirseEscuadron.js'
 
@@ -22,12 +23,12 @@ export const routes = [
   {
     path: '/login',
     title: 'Iniciar sesión',
-    view: () => screen({ title: 'Iniciar sesión', links: backHome }),
+    view: () => loginScreen(),
   },
   {
     path: '/registro',
     title: 'Registrarme',
-    view: () => screen({ title: 'Registrarme', links: backHome }),
+    view: () => registroScreen(),
   },
   {
     path: '/escuadrones/nuevo',
