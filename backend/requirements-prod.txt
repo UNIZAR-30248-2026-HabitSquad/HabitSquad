@@ -1,0 +1,6 @@
+-r requirements.txt
+click==8.5.0
+h11==0.16.0
+psycopg==3.3.6
+psycopg-binary==3.3.6
+uvicorn==0.54.0
