@@ -1,4 +1,5 @@
 import { screen } from './views/screen.js'
+import { unirseEscuadronScreen } from './views/unirseEscuadron.js'
 
 const backHome = [{ href: '/', label: 'Volver al inicio' }]
 
@@ -41,12 +42,7 @@ export const routes = [
   {
     path: '/escuadrones/unirse',
     title: 'Únete a un escuadrón',
-    view: () =>
-      screen({
-        title: 'Únete a un escuadrón',
-        description: 'Introduce el código de 6 caracteres que te han enviado.',
-        links: backHome,
-      }),
+    view: () => unirseEscuadronScreen(),
   },
 ]
 

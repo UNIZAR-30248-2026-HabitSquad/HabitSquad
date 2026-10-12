@@ -20,6 +20,16 @@ describe('routes', () => {
     expect(hrefs.every((href) => paths.includes(href))).toBe(true)
   })
 
+  it('la pantalla de unirse muestra las casillas del código', () => {
+    const element = routes
+      .find((route) => route.path === '/escuadrones/unirse')
+      .view()
+    expect(element.querySelectorAll('input')).toHaveLength(6)
+    expect(element.querySelector('a[data-link]').getAttribute('href')).toBe(
+      '/escuadrones/nuevo',
+    )
+  })
+
   it('la pantalla de no encontrada tiene título y enlace al inicio', () => {
     const element = notFound.view()
     expect(element.querySelector('h1').textContent).toBe(notFound.title)
