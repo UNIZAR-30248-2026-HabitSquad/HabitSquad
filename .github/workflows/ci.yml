@@ -46,6 +46,10 @@ jobs:
         working-directory: backend
         run: python manage.py migrate --noinput
 
+      - name: Validate OpenAPI schema
+        working-directory: backend
+        run: python manage.py spectacular --validate --file /tmp/openapi-schema.yml
+
       - name: Test backend
         working-directory: backend
         run: >
