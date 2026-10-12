@@ -57,6 +57,18 @@ transitivas que resolvió pip:
 | typing_extensions | 4.16.0 |
 | uritemplate | 4.2.0 |
 
+### Dependencias de producción
+
+[backend/requirements-prod.txt](../backend/requirements-prod.txt) incluye
+`requirements.txt` y añade lo que solo necesita la imagen de producción:
+
+| Paquete | Versión | Propósito |
+| --- | --- | --- |
+| uvicorn | 0.54.0 | Servidor ASGI, preparado para Django Channels. |
+| psycopg / psycopg-binary | 3.3.6 | Driver de PostgreSQL. |
+| click | 8.5.0 | Dependencia de uvicorn. |
+| h11 | 0.16.0 | Dependencia de uvicorn. |
+
 Las dependencias de otras áreas previstas por la arquitectura —como Channels,
 Redis, Django Q2, Cloudinary y Web Push— se incorporarán cuando se trabaje en
 las fases correspondientes, con sus versiones y cambios documentados.
@@ -98,6 +110,18 @@ globales del sistema.
   push que incluya el workflow ampliado.
 - **Entorno local:** el entorno virtual `backend/.venv` está ignorado por Git.
   No se instalaron paquetes en el Python global del sistema.
+
+## Producción
+
+Imágenes de Docker fijadas en los Dockerfile y en `docker-compose.yml`. El
+despliegue está descrito en [DESPLIEGUE.md](DESPLIEGUE.md).
+
+| Imagen | Versión |
+| --- | --- |
+| python | 3.12.15-slim |
+| node (solo para el build) | 22.23.3-alpine |
+| caddy | 2.11.7-alpine |
+| postgres | 18.6-alpine |
 
 ## Frontend
 

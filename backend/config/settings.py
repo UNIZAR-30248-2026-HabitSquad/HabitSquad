@@ -25,6 +25,16 @@ ALLOWED_HOSTS = os.environ.get(
     "DJANGO_ALLOWED_HOSTS",
     "localhost,127.0.0.1",
 ).split(",")
+CSRF_TRUSTED_ORIGINS = [
+    origin
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin
+]
+
+# En producción Django queda detrás de Caddy, que termina el HTTPS.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 
 # Application definition
@@ -77,6 +87,16 @@ DATABASES = {
     }
 }
 
+if os.environ.get("POSTGRES_DB"):
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["POSTGRES_DB"],
+        "USER": os.environ.get("POSTGRES_USER", ""),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
+        "HOST": os.environ.get("POSTGRES_HOST", "db"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -115,6 +135,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
