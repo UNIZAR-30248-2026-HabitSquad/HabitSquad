@@ -1,0 +1,133 @@
+import pytest
+from django.core.cache import cache
+from django.urls import reverse
+from django.utils.dateparse import parse_datetime
+from rest_framework.test import APIClient
+
+from usuarios.models import CustomUser
+
+
+@pytest.fixture
+def api_client():
+    return APIClient()
+
+
+@pytest.fixture(autouse=True)
+def clear_throttle_cache():
+    cache.clear()
+    yield
+    cache.clear()
+
+
+@pytest.mark.django_db
+def test_register_creates_user_and_returns_public_fields(api_client):
+    response = api_client.post(
+        reverse("autenticacion:register"),
+        {
+            "email": "Person@Example.com",
+            "password": "S0mething!Secure-497",
+        },
+        format="json",
+    )
+
+    user = CustomUser.objects.get(email="person@example.com")
+    assert response.status_code == 201
+    assert set(response.data) == {"id", "email", "date_joined"}
+    assert response.data["id"] == user.pk
+    assert response.data["email"] == "person@example.com"
+    assert parse_datetime(response.data["date_joined"]) == user.date_joined
+    assert user.check_password("S0mething!Secure-497")
+    assert "password" not in response.data
+
+
+@pytest.mark.django_db
+def test_register_rejects_duplicate_email_case_insensitively(api_client):
+    CustomUser.objects.create_user(
+        email="person@example.com",
+        password="S0mething!Secure-497",
+    )
+
+    response = api_client.post(
+        reverse("autenticacion:register"),
+        {
+            "email": "PERSON@EXAMPLE.COM",
+            "password": "Another!Secure-Password-51",
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "email" in response.data
+    assert CustomUser.objects.count() == 1
+
+
+@pytest.mark.parametrize(
+    ("email", "password"),
+    [
+        ("not-an-email", "S0mething!Secure-497"),
+        ([], "S0mething!Secure-497"),
+        ("person@example.com", "password"),
+        ("person@example.com", "1234567890123456"),
+        ("person@example.com", ""),
+    ],
+)
+@pytest.mark.django_db
+def test_register_rejects_invalid_input(api_client, email, password):
+    response = api_client.post(
+        reverse("autenticacion:register"),
+        {"email": email, "password": password},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert CustomUser.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_register_rejects_missing_fields(api_client):
+    response = api_client.post(
+        reverse("autenticacion:register"),
+        {},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert set(response.data) == {"email", "password"}
+
+
+@pytest.mark.django_db
+def test_register_is_limited_to_five_requests_per_hour(api_client):
+    url = reverse("autenticacion:register")
+
+    responses = [
+        api_client.post(
+            url,
+            {
+                "email": f"person{index}@example.com",
+                "password": "S0mething!Secure-497",
+            },
+            format="json",
+            REMOTE_ADDR="192.0.2.10",
+        )
+        for index in range(6)
+    ]
+
+    assert [response.status_code for response in responses] == [
+        201,
+        201,
+        201,
+        201,
+        201,
+        429,
+    ]
+
+
+def test_registration_is_included_in_openapi_schema(api_client):
+    response = api_client.get(reverse("schema"))
+
+    assert response.status_code == 200
+    assert "/api/auth/register/" in response.data["paths"]
+    operation = response.data["paths"]["/api/auth/register/"]["post"]
+    assert operation["description"] == "Registra una cuenta con email y contraseña."
+    assert "content" in operation["responses"]["201"]
+    assert set(operation["responses"]) == {"201", "400", "429"}

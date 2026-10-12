@@ -48,7 +48,9 @@ jobs:
 
       - name: Test backend
         working-directory: backend
-        run: pytest --cov=usuarios --cov-report=term-missing --cov-fail-under=100
+        run: >
+          pytest --cov=usuarios --cov=autenticacion
+          --cov-report=term-missing --cov-fail-under=100
 
   frontend:
     name: Frontend tests and build
