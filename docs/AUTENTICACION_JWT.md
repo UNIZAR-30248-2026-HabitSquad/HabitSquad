@@ -61,7 +61,7 @@ Respuesta correcta (`200 OK`):
 }
 ```
 
-## Endpoints de tokens
+## Endpoints de tokens y sesión
 
 ### Inicio de sesión
 
@@ -135,11 +135,6 @@ Los tokens deben tratarse como secretos:
   no puede almacenar de forma segura la respuesta, debe pedir al usuario que
   inicie sesión de nuevo.
 
-La invalidación explícita al cerrar sesión mediante `POST /api/auth/logout/`
-con blacklist se implementará en el siguiente bloque. Hasta entonces, un
-refresh solo se revoca al rotarlo o cuando expira; los access ya emitidos
-mantienen su validez hasta expirar.
-
 ## Configuración actual
 
 Los valores están definidos en `backend/config/settings.py` mediante
@@ -155,6 +150,29 @@ Los valores están definidos en `backend/config/settings.py` mediante
 La duración de un refresh nuevo empieza al emitirlo y no es una sesión
 ilimitada: cada refresh también caduca según su fecha de expiración.
 
+### Cierre de sesión
+
+`POST /api/auth/logout/`
+
+Petición:
+
+```json
+{
+  "refresh": "<refresh-vigente>"
+}
+```
+
+- `204 No Content`: el refresh se añadió a la blacklist; no hay cuerpo de
+  respuesta.
+- `400 Bad Request`: el campo falta o está vacío, el token está malformado,
+  expiró, no es un refresh o ya había sido revocado.
+
+El logout invalida el refresh enviado, no los access tokens ya emitidos. Esos
+access tokens siguen siendo válidos hasta su expiración (cinco minutos como
+máximo según la configuración actual). Si el cliente tiene más de una sesión o
+dispositivo, este endpoint cierra la sesión asociada al refresh proporcionado,
+no todas las sesiones de la cuenta.
+
 ## Prueba manual
 
 1. Inicia el backend y abre `/api/docs/`.
@@ -165,6 +183,10 @@ ilimitada: cada refresh también caduca según su fecha de expiración.
 5. Vuelve a enviar el refresh anterior: debe responder `401`.
 6. Envía el refresh nuevo: debe poder renovarse mientras no haya expirado ni
    se haya usado antes.
+7. Envía un refresh todavía válido a `POST /api/auth/logout/`: debe responder
+   `204` sin contenido.
+8. Vuelve a enviar ese refresh al logout o al refresh: el logout debe responder
+   `400` y el refresh, `401`.
 
 No compartas tokens reales en incidencias, documentación, capturas o
 repositorios.

@@ -58,6 +58,10 @@ a la blacklist y deja de ser válido. La blacklist de SimpleJWT persiste en la
 base de datos; aplica las migraciones con `python manage.py migrate` antes de
 usar el endpoint.
 
+El endpoint `POST /api/auth/logout/` recibe el refresh vigente, lo revoca y
+responde `204 No Content`. Un token ausente, inválido, expirado o ya revocado
+responde `400 Bad Request`.
+
 Para entender el ciclo de tokens, sus límites de seguridad y probarlo
 manualmente, consulta la [guía de autenticación JWT](../docs/AUTENTICACION_JWT.md).
 
