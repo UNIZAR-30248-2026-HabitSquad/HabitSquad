@@ -57,14 +57,37 @@ servidor y no están en el repositorio.
 Sin `POSTGRES_DB`, Django sigue usando SQLite, así que el desarrollo local no
 cambia.
 
+## Despliegue automático
+
+El workflow `.github/workflows/deploy.yml` se ejecuta cuando termina
+correctamente la CI de un cambio en `main`. Se conecta por SSH a la máquina,
+actualiza el repositorio a `origin/main` y ejecuta `scripts/deploy.sh`.
+
+La clave de GitHub Actions es exclusiva para CD. En `authorized_keys` está
+restringida a ejecutar `/home/habitsquad/run-deploy`; no permite obtener una
+shell ni abrir túneles. El repositorio tiene estos secretos:
+
+| Secreto | Contenido |
+| --- | --- |
+| `AZURE_VM_HOST` | Nombre DNS de la máquina. |
+| `AZURE_VM_USER` | Usuario SSH de despliegue. |
+| `AZURE_VM_SSH_KEY` | Clave privada exclusiva de GitHub Actions. |
+| `AZURE_VM_KNOWN_HOSTS` | Clave pública SSH del servidor para verificar su identidad. |
+
+El script construye las imágenes de una en una, arranca los contenedores y
+comprueba por HTTPS tanto el frontend como el admin de Django. Las migraciones
+se aplican en el arranque de la API. GitHub Actions vuelve a comprobar la URL
+desde fuera de Azure.
+
+También se puede lanzar manualmente desde la pestaña **Actions > CD > Run
+workflow**.
+
 ## Desplegar a mano
 
 Desde la máquina virtual, en `~/habitsquad` y con el código actualizado:
 
 ```bash
-docker compose build api
-docker compose build web
-docker compose up -d
+./scripts/deploy.sh
 ```
 
 Las imágenes se construyen de una en una para no agotar la memoria.
