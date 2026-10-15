@@ -59,6 +59,7 @@ instrucciones específicas cuando esas aplicaciones estén preparadas.
 
 - `docs/DEPENDENCIAS.md`: runtimes, versiones, librerías principales e
   instrucciones de instalación.
+- `docs/CREAR_ESCUADRON.md`: contrato del endpoint de creación de escuadrones.
 - `docs/REPORT.md`: informe del proyecto, que se completará según se acuerde.
 - `backend/README.md` y `frontend/README.md`: instrucciones específicas de cada
   aplicación cuando se implemente su configuración.
