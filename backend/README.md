@@ -27,7 +27,7 @@ Desde `backend/` con el entorno virtual activado:
 ```bash
 python manage.py migrate
 python manage.py check
-pytest --cov=usuarios --cov=autenticacion --cov-report=term-missing --cov-fail-under=100
+pytest --cov=usuarios --cov=autenticacion --cov=escuadrones --cov-report=term-missing --cov-fail-under=100
 ruff check .
 ruff format --check .
 python manage.py runserver
@@ -109,9 +109,11 @@ usuarios/
 
 escuadrones/
 ├── models/                     # Escuadrón y membresía
-└── crear/                      # Creación de escuadrón
-    ├── api/
-    └── services/
+├── crear/                      # Creación de escuadrón
+│   ├── api/
+│   ├── services/
+│   └── tests/
+└── tests/                      # Pruebas del modelo
 ```
 
 El flujo de registro es `registro/api/urls.py` → `registro/api/views.py` →
@@ -119,6 +121,6 @@ El flujo de registro es `registro/api/urls.py` → `registro/api/views.py` →
 `usuarios.models`. Login usa SimpleJWT para autenticar y emitir tokens; refresh
 usa SimpleJWT para rotarlos y almacenarlos en blacklist. La creación de
 escuadrón es `escuadrones/crear/api/` → `crear/services/creation.py` →
-`escuadrones.models`. Cada funcionalidad de autenticación mantiene sus pruebas
-en su propio `tests/`. Solo se añaden modelos bajo `usuarios/models/` si hacen
-falta nuevas entidades de usuario; no se duplica el usuario por cada operación.
+`escuadrones.models`. Cada funcionalidad mantiene sus pruebas en su propio
+`tests/`. Solo se añaden modelos bajo `usuarios/models/` si hacen falta nuevas
+entidades de usuario; no se duplica el usuario por cada operación.
