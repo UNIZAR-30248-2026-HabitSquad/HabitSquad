@@ -10,7 +10,7 @@ import {
   showFormAlert,
   submitButton,
 } from '../components/forms.js'
-import { authLayout } from '../components/layout.js'
+import { splitLayout } from '../components/layout.js'
 import { authTabs, passwordRecoveryLink } from '../components/navigation.js'
 import { validateLogin } from './login.js'
 import { validateRegistration } from './registro.js'
@@ -18,13 +18,13 @@ import { validateRegistration } from './registro.js'
 const COPY = {
   login: {
     title: 'Iniciar sesión',
-    description: 'Entra en tu cuenta para seguir cuidando la racha de tu escuadrón.',
+    description: 'Cumple tu hábito. Que no caiga la racha.',
     submit: 'Entrar',
     pending: 'Entrando…',
   },
   register: {
     title: 'Registrarme',
-    description: 'Crea tu cuenta para crear un escuadrón o unirte a uno.',
+    description: 'Un hábito al día, una racha compartida. Empieza creando tu cuenta.',
     submit: 'Crear cuenta',
     pending: 'Creando cuenta…',
   },
@@ -33,13 +33,13 @@ const COPY = {
 function accesoScreen({ mode, onSubmit, notice: noticeMessage } = {}) {
   const isLogin = mode === 'login'
   const copy = COPY[mode]
-  const { main, content } = authLayout({
+  const { main, content } = splitLayout({
     title: copy.title,
     description: copy.description,
   })
 
   const form = document.createElement('form')
-  form.className = 'mt-6 flex min-w-0 flex-col gap-5'
+  form.className = 'mt-7 flex min-w-0 flex-col gap-5'
   form.noValidate = true
 
   const email = labeledField({
@@ -62,7 +62,7 @@ function accesoScreen({ mode, onSubmit, notice: noticeMessage } = {}) {
   const alert = formAlert()
 
   const note = document.createElement('p')
-  note.className = 'mt-6 px-1 text-center text-sm leading-relaxed text-pretty text-[#5c5678]'
+  note.className = 'mt-8 text-[0.875rem] leading-relaxed text-pretty text-ink-muted'
   note.textContent = 'Después podrás crear un escuadrón o unirte a uno.'
 
   function clearField(field) {

@@ -9,16 +9,16 @@ import {
   showFormAlert,
   submitButton,
 } from '../components/forms.js'
-import { authLayout } from '../components/layout.js'
+import { splitLayout } from '../components/layout.js'
 import { backLink } from '../components/navigation.js'
 import { validateEmail } from './login.js'
 
 export function recuperarContrasenaScreen({ onSubmit } = {}) {
-  const { main, content } = authLayout({
+  const { main, content } = splitLayout({
     title: 'Recuperar contraseña',
     description:
       'Escribe el correo de tu cuenta y te enviaremos un enlace para crear una contraseña nueva.',
-    topAction: backLink({ href: '/login', label: 'Volver a iniciar sesión' }),
+    top: backLink({ href: '/login', label: 'Iniciar sesión' }),
   })
 
   const form = document.createElement('form')

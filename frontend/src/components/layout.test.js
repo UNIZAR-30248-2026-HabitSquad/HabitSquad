@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { authLayout } from './layout.js'
+import { splitLayout } from './layout.js'
 
-describe('authLayout', () => {
+describe('splitLayout', () => {
   it('crea el panel de marca para escritorio y la tarjeta del formulario', () => {
     const topAction = document.createElement('a')
     topAction.textContent = 'Volver'
-    const { main, content } = authLayout({
+    const { main, content } = splitLayout({
       title: 'Iniciar sesión',
       description: 'Entra en tu cuenta.',
-      topAction,
+      top: topAction,
     })
     const child = document.createElement('p')
     child.textContent = 'Formulario'

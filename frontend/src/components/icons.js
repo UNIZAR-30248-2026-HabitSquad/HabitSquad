@@ -1,6 +1,6 @@
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
-function createIcon({ paths = [], circles = [] }, className = 'h-5 w-5') {
+function createIcon(paths, className) {
   const icon = document.createElementNS(SVG_NAMESPACE, 'svg')
   icon.setAttribute('viewBox', '0 0 24 24')
   icon.setAttribute('fill', 'none')
@@ -11,14 +11,6 @@ function createIcon({ paths = [], circles = [] }, className = 'h-5 w-5') {
   icon.setAttribute('aria-hidden', 'true')
   icon.className.baseVal = className
 
-  for (const { cx, cy, r } of circles) {
-    const circle = document.createElementNS(SVG_NAMESPACE, 'circle')
-    circle.setAttribute('cx', String(cx))
-    circle.setAttribute('cy', String(cy))
-    circle.setAttribute('r', String(r))
-    icon.append(circle)
-  }
-
   for (const d of paths) {
     const path = document.createElementNS(SVG_NAMESPACE, 'path')
     path.setAttribute('d', d)
@@ -28,10 +20,21 @@ function createIcon({ paths = [], circles = [] }, className = 'h-5 w-5') {
   return icon
 }
 
-export function checkIcon(className = 'h-4 w-4 shrink-0') {
-  return createIcon({ paths: ['m5 12 4 4L19 6'] }, className)
+export function chevronRightIcon(className = 'h-4 w-4 shrink-0') {
+  return createIcon(['m9 6 6 6-6 6'], className)
 }
 
-export function arrowRightIcon(className = 'h-4 w-4 shrink-0') {
-  return createIcon({ paths: ['M5 12h14', 'm13 6 6 6-6 6'] }, className)
+export function chevronLeftIcon(className = 'h-4 w-4 shrink-0') {
+  return createIcon(['m15 6-6 6 6 6'], className)
+}
+
+export function plusIcon(className = 'h-5 w-5 shrink-0') {
+  return createIcon(['M12 5v14', 'M5 12h14'], className)
+}
+
+export function lockIcon(className = 'h-5 w-5 shrink-0') {
+  return createIcon(
+    ['M7 10V8a5 5 0 0 1 10 0v2', 'M5 10h14v10H5z', 'M12 14v2'],
+    className,
+  )
 }

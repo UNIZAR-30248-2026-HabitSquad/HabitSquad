@@ -68,19 +68,28 @@ sesión. Ambas redirecciones sustituyen la entrada del historial.
 ## Diseño responsive y componentes
 
 La interfaz es mobile-first: primero se compone para una columna estrecha y
-después se adapta con los prefijos `sm:` y `lg:` de Tailwind. En pantallas
-grandes, las vistas de acceso muestran un panel lateral de marca y el
-formulario dentro de una tarjeta centrada; no se limita a estirar la columna
-del móvil.
+después se adapta con los prefijos `sm:` y `lg:` de Tailwind. El estilo es
+minimalista: fondo claro, tipografía del sistema y un único color de acento.
+Los colores son tokens de `src/style.css` (`bg-canvas`, `text-ink`,
+`text-ink-muted`, `bg-accent`, `text-streak`…); no se escriben valores
+hexadecimales en las vistas. El naranja de la racha se reserva para el número
+de días.
+
+En pantallas grandes, junto al formulario aparece un móvil con el panel del
+escuadrón tal como está en el diseño; en el móvil solo se ve el formulario.
 
 Las piezas repetidas viven en `src/components/` y las pantallas solo componen
 esos bloques y contienen su lógica:
 
-- `layout.js`: estructura responsive de acceso, panel de marca y tarjeta.
+- `layout.js`: `splitLayout`, columna principal con marca, título y contenido,
+  y la vista previa en escritorio.
+- `squadPreview.js`: maqueta decorativa del panel del escuadrón (oculta a
+  lectores de pantalla).
 - `forms.js`: campos, contraseña con mostrar/ocultar, errores, avisos y botón
   de envío con estado de espera.
-- `navigation.js`: pestañas de acceso, enlaces de acción y recuperación.
-- `brand.js` e `icons.js`: identidad visual e iconos SVG.
+- `navigation.js`: selector Iniciar sesión / Registrarme, enlace de
+  recuperación, enlace de volver y filas de lista agrupada.
+- `brand.js` e `icons.js`: icono de la app, nombre e iconos SVG.
 
 Al crear una pantalla nueva se reutilizan estos componentes antes de copiar
 clases o crear otra variante parecida.
