@@ -24,9 +24,9 @@ describe('loginScreen', () => {
     expect(element.textContent).toContain('Contraseña')
     expect(element.querySelector('input[name="email"]').placeholder).toBe('tu@correo.com')
     expect(element.querySelector('input[name="password"]').placeholder).toBe(
-      'Mínimo 8 caracteres',
+      'Tu contraseña',
     )
-    expect(element.querySelector('button').textContent).toBe('Entrar')
+    expect(element.querySelector('button[type="submit"]').textContent).toBe('Entrar')
     expect(element.textContent).toContain(
       'Después podrás crear un escuadrón o unirte a uno.',
     )
@@ -64,5 +64,29 @@ describe('loginScreen', () => {
       email: 'persona@example.com',
       password: 'secreta',
     })
+  })
+
+  it('muestra y oculta la contraseña', () => {
+    const element = mount()
+    const password = element.querySelector('input[name="password"]')
+    const toggle = element.querySelector('button[aria-pressed]')
+
+    toggle.click()
+    expect(password.type).toBe('text')
+    expect(toggle.textContent).toBe('Ocultar')
+
+    toggle.click()
+    expect(password.type).toBe('password')
+    expect(toggle.textContent).toBe('Mostrar')
+  })
+
+  it('muestra el aviso que recibe, por ejemplo de sesión caducada', () => {
+    const element = mount(
+      loginScreen({ notice: 'Tu sesión ha caducado. Vuelve a iniciar sesión.' }),
+    )
+
+    expect(element.querySelector('[role="status"]').textContent).toBe(
+      'Tu sesión ha caducado. Vuelve a iniciar sesión.',
+    )
   })
 })

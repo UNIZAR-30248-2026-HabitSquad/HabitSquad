@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { notFound, routes } from './routes.js'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { guard, notFound, routes } from './routes.js'
+import { getSession } from './session.js'
 
 describe('routes', () => {
   it.each(routes.map((route) => [route.path, route]))(
@@ -24,5 +25,37 @@ describe('routes', () => {
     const element = notFound.view()
     expect(element.querySelector('h1').textContent).toBe(notFound.title)
     expect(element.querySelector('a[data-link]').getAttribute('href')).toBe('/')
+  })
+})
+
+describe('sesión', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    localStorage.clear()
+  })
+
+  it('sin sesión las rutas privadas llevan a /login', () => {
+    const privatePaths = routes.filter((route) => route.private).map((route) => route.path)
+    expect(privatePaths).toEqual(['/', '/escuadrones/nuevo', '/escuadrones/unirse'])
+    for (const path of privatePaths) {
+      expect(guard(routes.find((route) => route.path === path))).toBe('/login')
+    }
+  })
+
+  it('un login correcto guarda los tokens y abre el inicio', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ access: 'a1', refresh: 'r1' }), { status: 200 }),
+      ),
+    )
+    const navigate = vi.fn()
+    const element = routes.find((route) => route.path === '/login').view({ navigate })
+    element.querySelector('input[name="email"]').value = 'persona@example.com'
+    element.querySelector('input[name="password"]').value = 'secreta'
+    element.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }))
+
+    await vi.waitFor(() => expect(navigate).toHaveBeenCalledWith('/'))
+    expect(getSession()).toEqual({ access: 'a1', refresh: 'r1' })
   })
 })

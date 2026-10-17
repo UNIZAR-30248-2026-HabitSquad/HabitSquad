@@ -57,8 +57,39 @@ El enrutador (`src/router.js`) usa la History API: las URL son normales
 <a href="/registro" data-link>Registrarme</a>
 ```
 
-Desde código se navega con `router.navigate('/login')`. Las rutas que no
-existen muestran la pantalla «Página no encontrada».
+Desde código se navega con `router.navigate('/login')`; cada pantalla recibe
+`navigate` como argumento de `view`. Las rutas que no existen muestran la
+pantalla «Página no encontrada».
+
+Una ruta con `private: true` exige sesión: sin ella, el enrutador lleva a
+`/login`. Una con `guestOnly: true` (login y registro) lleva a `/` si ya hay
+sesión. Ambas redirecciones sustituyen la entrada del historial.
+
+## Sesión y llamadas a la API
+
+Al iniciar sesión, `login()` (`src/api.js`) guarda el access y el refresh
+token en `localStorage` (`src/session.js`). Las llamadas a endpoints que
+requieren sesión se hacen con `authFetch`, que acepta los mismos argumentos que
+`fetch` y añade `Authorization: Bearer <access>`:
+
+```js
+import { authFetch } from './api.js'
+
+const response = await authFetch('/api/escuadrones/', { method: 'POST', body })
+```
+
+Si la API responde `401`, `authFetch` renueva los tokens con
+`/api/auth/token/refresh/` y repite la petición una vez. Si varias peticiones
+caducan a la vez, se hace una sola renovación. Si el refresh ya no vale, borra
+la sesión y la aplicación vuelve a `/login`. `logout()` revoca el refresh en
+`/api/auth/logout/` y borra la sesión aunque el backend no responda.
+
+El flujo completo de tokens está en `docs/AUTENTICACION_JWT.md`.
+
+En desarrollo, `npm run dev` y `npm run preview` reenvían `/api` al backend en
+`http://localhost:8000`, así que hay que tener `python manage.py runserver` en
+marcha para iniciar sesión. En producción Caddy sirve frontend y API en el
+mismo dominio.
 
 ## PWA
 
@@ -81,9 +112,11 @@ HTTPS, así que se prueba con la versión desplegada.
 ## Estructura
 
 - `index.html`: punto de entrada de la aplicación.
-- `src/main.js`: arranca el enrutador.
+- `src/main.js`: arranca el enrutador y vuelve a `/login` si caduca la sesión.
 - `src/router.js`: enrutador con la History API.
-- `src/routes.js`: rutas y pantallas.
+- `src/routes.js`: rutas, pantallas y rutas que exigen sesión.
+- `src/api.js`: inicio y cierre de sesión, renovación de tokens y `authFetch`.
+- `src/session.js`: guarda los tokens en el navegador.
 - `src/views/`: pantallas y componentes de interfaz.
 - `src/style.css`: importa Tailwind CSS.
 - `public/`: ficheros estáticos que se copian tal cual al build, incluidos los

@@ -126,7 +126,7 @@ describe('validación local del formulario de registro', () => {
     expect(element.querySelector('h1').textContent).toBe('Registrarme')
     expect(element.querySelector('input[name="email"]').type).toBe('email')
     expect(element.querySelector('input[name="password"]').type).toBe('password')
-    expect(element.querySelector('button').textContent).toBe('Crear cuenta')
+    expect(element.querySelector('button[type="submit"]').textContent).toBe('Crear cuenta')
     for (const alert of alerts(element)) {
       expect(alert.classList.contains('hidden')).toBe(true)
       expect(alert.className).toContain('text-red-600')

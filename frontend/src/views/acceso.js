@@ -1,6 +1,5 @@
+import { validateLogin } from './login.js'
 import { validateRegistration } from './registro.js'
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const fieldClass = [
   'w-full min-w-0 rounded-xl border border-[#e4e0ef] bg-white',
@@ -10,28 +9,6 @@ const fieldClass = [
   'aria-invalid:border-2 aria-invalid:border-red-600',
   'aria-invalid:focus:border-red-600 aria-invalid:focus:ring-red-600/25',
 ].join(' ')
-
-function validateLogin({ email = '', password = '' } = {}) {
-  const errors = {}
-  const normalizedEmail = String(email).trim().toLowerCase()
-
-  if (!normalizedEmail) {
-    errors.email = 'Introduce tu correo.'
-  } else if (!EMAIL_PATTERN.test(normalizedEmail)) {
-    errors.email = 'Introduce un correo válido.'
-  }
-
-  if (password === '') {
-    errors.password = 'Introduce tu contraseña.'
-  }
-
-  return {
-    ok: !errors.email && !errors.password,
-    email: normalizedEmail,
-    password,
-    errors,
-  }
-}
 
 function fieldError(id) {
   const error = document.createElement('p')
@@ -72,13 +49,19 @@ function tab(href, label, active) {
   return link
 }
 
-function labeledField({ label, name, type, placeholder, autocomplete, errorId }) {
-  const wrapper = document.createElement('label')
-  wrapper.className =
-    'flex min-w-0 flex-col gap-2 text-[clamp(0.8rem,3.2vw,0.95rem)] font-semibold text-[#211a45]'
-  wrapper.append(label)
+function labeledField({ label, id, name, type, placeholder, autocomplete }) {
+  const wrapper = document.createElement('div')
+  wrapper.className = 'flex min-w-0 flex-col gap-2'
+
+  const labelElement = document.createElement('label')
+  labelElement.htmlFor = id
+  labelElement.className =
+    'text-[clamp(0.8rem,3.2vw,0.95rem)] font-semibold text-[#211a45]'
+  labelElement.textContent = label
+  wrapper.append(labelElement)
 
   const input = document.createElement('input')
+  input.id = id
   input.type = type
   input.name = name
   input.placeholder = placeholder
@@ -88,12 +71,75 @@ function labeledField({ label, name, type, placeholder, autocomplete, errorId })
   input.setAttribute('aria-invalid', 'false')
   input.className = fieldClass
 
-  const error = fieldError(errorId)
+  const error = fieldError(`${id}-error`)
   wrapper.append(input, error)
   return { wrapper, input, error }
 }
 
-function accesoScreen({ mode, onSubmit } = {}) {
+function addPasswordToggle(input) {
+  input.classList.add('pe-24')
+
+  const row = document.createElement('div')
+  row.className = 'relative min-w-0'
+  input.replaceWith(row)
+
+  const toggle = document.createElement('button')
+  toggle.type = 'button'
+  toggle.className = [
+    'absolute inset-y-0 end-0 flex items-center rounded-e-xl px-4',
+    'text-sm font-semibold text-[#5b32ea] hover:text-[#4c28cc]',
+    'focus-visible:outline-2 focus-visible:outline-[#5b32ea]',
+  ].join(' ')
+  toggle.setAttribute('aria-pressed', 'false')
+  toggle.setAttribute('aria-label', 'Mostrar la contraseña')
+  toggle.textContent = 'Mostrar'
+  toggle.addEventListener('click', () => {
+    const visible = input.type === 'password'
+    input.type = visible ? 'text' : 'password'
+    toggle.textContent = visible ? 'Ocultar' : 'Mostrar'
+    toggle.setAttribute('aria-pressed', String(visible))
+    toggle.setAttribute(
+      'aria-label',
+      visible ? 'Ocultar la contraseña' : 'Mostrar la contraseña',
+    )
+    input.focus()
+  })
+
+  row.append(input, toggle)
+}
+
+function addCapsLockHint({ input, error }) {
+  const hint = document.createElement('p')
+  hint.className = 'hidden text-sm font-medium text-amber-700'
+  hint.setAttribute('aria-live', 'polite')
+
+  function update(event) {
+    const capsLock = event.getModifierState?.('CapsLock') ?? false
+    hint.textContent = capsLock ? 'Tienes activadas las mayúsculas.' : ''
+    hint.classList.toggle('hidden', !capsLock)
+  }
+
+  input.addEventListener('keydown', update)
+  input.addEventListener('keyup', update)
+  input.addEventListener('blur', () => {
+    hint.textContent = ''
+    hint.classList.add('hidden')
+  })
+  error.before(hint)
+}
+
+function noticeBox(message) {
+  const notice = document.createElement('p')
+  notice.className = [
+    'mt-[clamp(1.25rem,4vh,1.75rem)] rounded-xl bg-[#ece7fd] px-4 py-3',
+    'text-sm font-medium text-pretty text-[#3b2a8f]',
+  ].join(' ')
+  notice.setAttribute('role', 'status')
+  notice.textContent = message
+  return notice
+}
+
+function accesoScreen({ mode, onSubmit, notice } = {}) {
   const isLogin = mode === 'login'
   const main = document.createElement('main')
   main.className = [
@@ -139,21 +185,24 @@ function accesoScreen({ mode, onSubmit } = {}) {
 
   const email = labeledField({
     label: 'Correo',
+    id: isLogin ? 'login-email' : 'registro-email',
     name: 'email',
     type: 'email',
     placeholder: 'tu@correo.com',
-    autocomplete: 'email',
-    errorId: isLogin ? 'login-email-error' : 'registro-email-error',
+    autocomplete: isLogin ? 'username' : 'email',
   })
   const password = labeledField({
     label: 'Contraseña',
+    id: isLogin ? 'login-password' : 'registro-password',
     name: 'password',
     type: 'password',
-    placeholder: 'Mínimo 8 caracteres',
+    placeholder: isLogin ? 'Tu contraseña' : 'Mínimo 8 caracteres',
     autocomplete: isLogin ? 'current-password' : 'new-password',
-    errorId: isLogin ? 'login-password-error' : 'registro-password-error',
   })
+  addPasswordToggle(password.input)
+  addCapsLockHint(password)
 
+  const submitLabel = isLogin ? 'Entrar' : 'Crear cuenta'
   const submitButton = document.createElement('button')
   submitButton.type = 'submit'
   submitButton.className = [
@@ -161,8 +210,24 @@ function accesoScreen({ mode, onSubmit } = {}) {
     'justify-center rounded-xl bg-[#5b32ea] px-4',
     'text-[clamp(0.95rem,3.4vw,1.05rem)] font-bold text-white',
     'transition-colors hover:bg-[#4c28cc]',
+    'disabled:cursor-wait disabled:opacity-70',
   ].join(' ')
-  submitButton.textContent = isLogin ? 'Entrar' : 'Crear cuenta'
+  submitButton.textContent = submitLabel
+
+  let formError = null
+
+  function showFormError(message) {
+    formError ??= document.createElement('p')
+    formError.className =
+      'rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-pretty text-red-700'
+    formError.setAttribute('role', 'alert')
+    formError.textContent = message
+    submitButton.before(formError)
+  }
+
+  function clearFormError() {
+    formError?.remove()
+  }
 
   const note = document.createElement('p')
   note.className =
@@ -171,13 +236,17 @@ function accesoScreen({ mode, onSubmit } = {}) {
 
   email.input.addEventListener('input', () => {
     clearFieldError(email.input, email.error)
+    clearFormError()
   })
   password.input.addEventListener('input', () => {
     clearFieldError(password.input, password.error)
+    clearFormError()
   })
 
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault()
+    if (submitButton.disabled) return
+    clearFormError()
     const values = {
       email: email.input.value,
       password: password.input.value,
@@ -202,13 +271,28 @@ function accesoScreen({ mode, onSubmit } = {}) {
       return
     }
 
-    if (typeof onSubmit === 'function') {
-      onSubmit({ email: result.email, password: result.password })
+    if (typeof onSubmit !== 'function') return
+
+    submitButton.disabled = true
+    submitButton.textContent = isLogin ? 'Entrando…' : 'Creando cuenta…'
+    try {
+      await onSubmit({ email: result.email, password: result.password })
+    } catch (error) {
+      showFormError(error.message)
+      if (isLogin) {
+        password.input.focus()
+        password.input.select()
+      }
+    } finally {
+      submitButton.disabled = false
+      submitButton.textContent = submitLabel
     }
   })
 
   form.append(email.wrapper, password.wrapper, submitButton)
-  column.append(heading, brand, tagline, tabs, form, note)
+  column.append(heading, brand, tagline, tabs)
+  if (notice) column.append(noticeBox(notice))
+  column.append(form, note)
   main.append(column)
   return main
 }
