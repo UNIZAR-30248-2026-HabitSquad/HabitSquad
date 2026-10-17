@@ -86,6 +86,17 @@ la sesión y la aplicación vuelve a `/login`. `logout()` revoca el refresh en
 
 El flujo completo de tokens está en `docs/AUTENTICACION_JWT.md`.
 
+### Recuperar la contraseña
+
+La pantalla `/recuperar-contrasena` envía el correo a
+`POST /api/auth/password-reset/` con `{ "email": "..." }`. Ese endpoint aún no
+existe en el backend; mientras tanto la API responde `404` y la pantalla avisa
+de que la función todavía no está disponible. Cuando se implemente, debe
+responder `204` exista o no la cuenta, para no revelar qué correos están
+registrados, y `429` si se supera el límite de intentos. La pantalla para
+escribir la contraseña nueva desde el enlace del correo se hará junto con ese
+endpoint.
+
 En desarrollo, `npm run dev` y `npm run preview` reenvían `/api` al backend en
 `http://localhost:8000`, así que hay que tener `python manage.py runserver` en
 marcha para iniciar sesión. En producción Caddy sirve frontend y API en el

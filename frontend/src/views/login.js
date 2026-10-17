@@ -1,14 +1,23 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export function validateLogin({ email = '', password = '' } = {}) {
-  const errors = {}
+export function validateEmail(email = '') {
   const normalizedEmail = String(email).trim().toLowerCase()
+  let error = null
 
   if (!normalizedEmail) {
-    errors.email = 'Introduce tu correo.'
+    error = 'Introduce tu correo.'
   } else if (!EMAIL_PATTERN.test(normalizedEmail)) {
-    errors.email = 'Introduce un correo válido.'
+    error = 'Introduce un correo válido.'
   }
+
+  return { ok: !error, email: normalizedEmail, error }
+}
+
+export function validateLogin({ email = '', password = '' } = {}) {
+  const errors = {}
+  const emailResult = validateEmail(email)
+
+  if (emailResult.error) errors.email = emailResult.error
 
   if (password === '') {
     errors.password = 'Introduce tu contraseña.'
@@ -16,7 +25,7 @@ export function validateLogin({ email = '', password = '' } = {}) {
 
   return {
     ok: !errors.email && !errors.password,
-    email: normalizedEmail,
+    email: emailResult.email,
     password,
     errors,
   }

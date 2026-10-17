@@ -1,7 +1,8 @@
-import { ApiError, login, logout } from './api.js'
+import { ApiError, login, logout, requestPasswordReset } from './api.js'
 import { hasSession } from './session.js'
 import { loginScreen, registroScreen } from './views/acceso.js'
 import { inicioScreen } from './views/inicio.js'
+import { recuperarContrasenaScreen } from './views/recuperarContrasena.js'
 import { screen } from './views/screen.js'
 import { unirseEscuadronScreen } from './views/unirseEscuadron.js'
 
@@ -15,6 +16,16 @@ function loginErrorMessage(error) {
     return 'Has hecho demasiados intentos. Espera un rato y vuelve a probar.'
   }
   return 'No se ha podido iniciar sesión. Comprueba tu conexión e inténtalo de nuevo.'
+}
+
+function passwordResetErrorMessage(error) {
+  if (error instanceof ApiError && error.status === 404) {
+    return 'La recuperación de contraseña todavía no está disponible.'
+  }
+  if (error instanceof ApiError && error.status === 429) {
+    return 'Has hecho demasiados intentos. Espera un rato y vuelve a probar.'
+  }
+  return 'No se ha podido enviar el enlace. Comprueba tu conexión e inténtalo de nuevo.'
 }
 
 export const routes = [
@@ -55,6 +66,21 @@ export const routes = [
     title: 'Registrarme',
     guestOnly: true,
     view: () => registroScreen(),
+  },
+  {
+    path: '/recuperar-contrasena',
+    title: 'Recuperar contraseña',
+    guestOnly: true,
+    view: () =>
+      recuperarContrasenaScreen({
+        onSubmit: async (email) => {
+          try {
+            await requestPasswordReset(email)
+          } catch (error) {
+            throw new Error(passwordResetErrorMessage(error), { cause: error })
+          }
+        },
+      }),
   },
   {
     path: '/escuadrones/nuevo',

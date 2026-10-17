@@ -19,14 +19,14 @@ function fieldError(id) {
   return error
 }
 
-function setFieldError(input, error, message) {
+export function setFieldError(input, error, message) {
   error.textContent = message
   error.classList.remove('hidden')
   input.setAttribute('aria-invalid', 'true')
   input.setAttribute('aria-describedby', error.id)
 }
 
-function clearFieldError(input, error) {
+export function clearFieldError(input, error) {
   error.textContent = ''
   error.classList.add('hidden')
   input.setAttribute('aria-invalid', 'false')
@@ -49,7 +49,7 @@ function tab(href, label, active) {
   return link
 }
 
-function labeledField({ label, id, name, type, placeholder, autocomplete }) {
+export function labeledField({ label, id, name, type, placeholder, autocomplete }) {
   const wrapper = document.createElement('div')
   wrapper.className = 'flex min-w-0 flex-col gap-2'
 
@@ -289,7 +289,45 @@ function accesoScreen({ mode, onSubmit, notice } = {}) {
     }
   })
 
-  form.append(email.wrapper, password.wrapper, submitButton)
+  form.append(email.wrapper, password.wrapper)
+  if (isLogin) {
+    const forgot = document.createElement('a')
+    forgot.href = '/recuperar-contrasena'
+    forgot.dataset.link = ''
+    forgot.className = [
+      '-mt-2 inline-flex min-h-10 items-center gap-2 self-end rounded-full',
+      'bg-[#ece7fd] px-3.5 py-2 text-[clamp(0.8rem,3.2vw,0.95rem)] font-semibold',
+      'text-[#5b32ea] transition-colors hover:bg-[#ddd1fb] hover:text-[#4c28cc]',
+      'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5b32ea]',
+    ].join(' ')
+
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    icon.setAttribute('viewBox', '0 0 24 24')
+    icon.setAttribute('fill', 'none')
+    icon.setAttribute('stroke', 'currentColor')
+    icon.setAttribute('stroke-width', '2')
+    icon.setAttribute('stroke-linecap', 'round')
+    icon.setAttribute('stroke-linejoin', 'round')
+    icon.setAttribute('aria-hidden', 'true')
+    icon.classList.add('h-4', 'w-4', 'shrink-0')
+
+    const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    ring.setAttribute('cx', '8')
+    ring.setAttribute('cy', '16')
+    ring.setAttribute('r', '4')
+    icon.append(ring)
+    for (const d of ['M11.2 12.8 20 4', 'M16 8l2.5 2.5']) {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+      path.setAttribute('d', d)
+      icon.append(path)
+    }
+
+    const label = document.createElement('span')
+    label.textContent = '¿Has olvidado tu contraseña?'
+    forgot.append(icon, label)
+    form.append(forgot)
+  }
+  form.append(submitButton)
   column.append(heading, brand, tagline, tabs)
   if (notice) column.append(noticeBox(notice))
   column.append(form, note)

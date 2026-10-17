@@ -38,6 +38,10 @@ export async function login({ email, password }) {
   saveSession(await postJson('/api/auth/token/', { email, password }))
 }
 
+export async function requestPasswordReset(email) {
+  await postJson('/api/auth/password-reset/', { email })
+}
+
 let pendingRefresh = null
 
 // El backend revoca cada refresh al usarlo: dos renovaciones simultáneas con
