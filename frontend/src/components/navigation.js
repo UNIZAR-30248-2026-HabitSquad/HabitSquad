@@ -1,4 +1,4 @@
-import { chevronLeftIcon, chevronRightIcon } from './icons.js'
+import { chevronLeftIcon } from './icons.js'
 
 function segment(href, label, active) {
   const link = document.createElement('a')
@@ -54,48 +54,4 @@ export function backLink({ href, label }) {
   text.textContent = label
   link.append(chevronLeftIcon('h-5 w-5 shrink-0'), text)
   return link
-}
-
-export function listRow({ href, title, subtitle, icon }) {
-  const link = document.createElement('a')
-  link.href = href
-  link.dataset.link = ''
-  link.className = [
-    'group flex min-h-16 min-w-0 items-center gap-4 px-4 py-3 transition-colors duration-150',
-    'hover:bg-canvas/70 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent',
-  ].join(' ')
-
-  const badge = document.createElement('span')
-  badge.className =
-    'grid h-9 w-9 shrink-0 place-items-center rounded-[0.625rem] bg-accent text-white'
-  badge.append(icon)
-
-  const text = document.createElement('span')
-  text.className = 'min-w-0 flex-1'
-
-  const titleElement = document.createElement('span')
-  titleElement.className = 'block text-[1.0625rem] font-medium text-ink'
-  titleElement.textContent = title
-
-  const subtitleElement = document.createElement('span')
-  subtitleElement.className = 'mt-0.5 block text-[0.875rem] leading-snug text-ink-muted'
-  subtitleElement.textContent = subtitle
-
-  text.append(titleElement, subtitleElement)
-  link.append(
-    badge,
-    text,
-    chevronRightIcon('h-4 w-4 shrink-0 text-ink-muted/60 transition-transform group-hover:translate-x-0.5'),
-  )
-  return link
-}
-
-export function groupedList(label, rows) {
-  const nav = document.createElement('nav')
-  nav.setAttribute('aria-label', label)
-  nav.className = [
-    'flex min-w-0 flex-col divide-y divide-hairline/70 overflow-hidden rounded-2xl bg-surface',
-  ].join(' ')
-  nav.append(...rows)
-  return nav
 }

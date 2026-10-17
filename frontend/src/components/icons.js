@@ -20,21 +20,6 @@ function createIcon(paths, className) {
   return icon
 }
 
-export function chevronRightIcon(className = 'h-4 w-4 shrink-0') {
-  return createIcon(['m9 6 6 6-6 6'], className)
-}
-
 export function chevronLeftIcon(className = 'h-4 w-4 shrink-0') {
   return createIcon(['m15 6-6 6 6 6'], className)
-}
-
-export function plusIcon(className = 'h-5 w-5 shrink-0') {
-  return createIcon(['M12 5v14', 'M5 12h14'], className)
-}
-
-export function lockIcon(className = 'h-5 w-5 shrink-0') {
-  return createIcon(
-    ['M7 10V8a5 5 0 0 1 10 0v2', 'M5 10h14v10H5z', 'M12 14v2'],
-    className,
-  )
 }

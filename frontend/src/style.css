@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   --color-canvas: #f5f5f7;
@@ -16,11 +16,3 @@
   --color-streak: #ff7a1a;
 }
 
-html {
-  background-color: var(--color-canvas);
-}
-
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}

@@ -70,6 +70,8 @@ sesión. Ambas redirecciones sustituyen la entrada del historial.
 La interfaz es mobile-first: primero se compone para una columna estrecha y
 después se adapta con los prefijos `sm:` y `lg:` de Tailwind. El estilo es
 minimalista: fondo claro, tipografía del sistema y un único color de acento.
+Este diseño solo se aplica a las pantallas de acceso (iniciar sesión,
+registro y recuperar contraseña); el resto mantiene su propio estilo.
 Los colores son tokens de `src/style.css` (`bg-canvas`, `text-ink`,
 `text-ink-muted`, `bg-accent`, `text-streak`…); no se escriben valores
 hexadecimales en las vistas. El naranja de la racha se reserva para el número
@@ -88,7 +90,7 @@ esos bloques y contienen su lógica:
 - `forms.js`: campos, contraseña con mostrar/ocultar, errores, avisos y botón
   de envío con estado de espera.
 - `navigation.js`: selector Iniciar sesión / Registrarme, enlace de
-  recuperación, enlace de volver y filas de lista agrupada.
+  recuperación y enlace de volver.
 - `brand.js` e `icons.js`: icono de la app, nombre e iconos SVG.
 
 Al crear una pantalla nueva se reutilizan estos componentes antes de copiar

@@ -1,7 +1,6 @@
 import { ApiError, login, logout, requestPasswordReset } from './api.js'
 import { hasSession } from './session.js'
 import { loginScreen, registroScreen } from './views/acceso.js'
-import { inicioScreen } from './views/inicio.js'
 import { recuperarContrasenaScreen } from './views/recuperarContrasena.js'
 import { screen } from './views/screen.js'
 import { unirseEscuadronScreen } from './views/unirseEscuadron.js'
@@ -28,17 +27,41 @@ function passwordResetErrorMessage(error) {
   return 'No se ha podido enviar el enlace. Comprueba tu conexión e inténtalo de nuevo.'
 }
 
+function homeScreen(onLogout) {
+  const element = screen({
+    title: 'HabitSquad',
+    description: 'Cumple tu hábito. Que no caiga la racha.',
+    links: [
+      { href: '/escuadrones/nuevo', label: 'Crear un escuadrón' },
+      { href: '/escuadrones/unirse', label: 'Unirme a un escuadrón' },
+    ],
+  })
+
+  const logoutButton = document.createElement('button')
+  logoutButton.type = 'button'
+  logoutButton.className = 'self-start font-medium text-indigo-700 underline disabled:opacity-60'
+  logoutButton.textContent = 'Cerrar sesión'
+  logoutButton.addEventListener('click', async () => {
+    logoutButton.disabled = true
+    try {
+      await onLogout()
+    } finally {
+      logoutButton.disabled = false
+    }
+  })
+  element.querySelector('nav').append(logoutButton)
+  return element
+}
+
 export const routes = [
   {
     path: '/',
     title: 'HabitSquad',
     private: true,
     view: ({ navigate } = {}) =>
-      inicioScreen({
-        onLogout: async () => {
-          await logout()
-          navigate('/login')
-        },
+      homeScreen(async () => {
+        await logout()
+        navigate('/login')
       }),
   },
   {

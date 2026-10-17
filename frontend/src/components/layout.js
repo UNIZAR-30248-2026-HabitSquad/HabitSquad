@@ -4,7 +4,7 @@ import { squadPreview } from './squadPreview.js'
 function pageShell() {
   const main = document.createElement('main')
   main.className = [
-    'min-h-dvh w-full min-w-0 bg-canvas font-sans text-ink',
+    'min-h-dvh w-full min-w-0 bg-canvas font-system text-ink antialiased',
     'ps-[env(safe-area-inset-left)] pe-[env(safe-area-inset-right)]',
     'pt-[env(safe-area-inset-top)]',
   ].join(' ')
