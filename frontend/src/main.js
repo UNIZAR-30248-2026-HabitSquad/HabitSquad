@@ -1,3 +1,4 @@
+import '@fontsource-variable/nunito'
 import './style.css'
 import { SESSION_EXPIRED_EVENT } from './api.js'
 import { createRouter } from './router.js'

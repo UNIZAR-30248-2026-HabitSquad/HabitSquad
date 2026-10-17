@@ -1,15 +1,15 @@
 const fieldClass = [
-  'h-12 w-full min-w-0 rounded-xl border border-hairline bg-surface px-4',
-  'text-[1.0625rem] text-ink outline-none transition-[border-color,box-shadow] duration-200',
-  'placeholder:text-ink-muted/60',
-  'focus:border-accent focus:ring-4 focus:ring-accent/15',
-  'aria-invalid:border-red-500 aria-invalid:focus:ring-red-500/15',
+  'h-12 w-full min-w-0 rounded-2xl border-2 border-hairline bg-surface px-4',
+  'text-[1rem] font-bold text-ink outline-none transition-[border-color,box-shadow] duration-200',
+  'placeholder:font-semibold placeholder:text-ink-muted/70',
+  'focus:border-accent-line focus:ring-4 focus:ring-accent/15',
+  'aria-invalid:border-red-400 aria-invalid:focus:ring-red-500/15',
 ].join(' ')
 
 function fieldError(id) {
   const error = document.createElement('p')
   error.id = id
-  error.className = 'hidden text-[0.8125rem] leading-snug text-red-600'
+  error.className = 'hidden text-[0.8125rem] leading-snug font-bold text-red-600'
   error.setAttribute('role', 'alert')
   error.setAttribute('aria-live', 'polite')
   return error
@@ -35,7 +35,7 @@ export function labeledField({ label, id, name, type, placeholder, autocomplete 
 
   const labelElement = document.createElement('label')
   labelElement.htmlFor = id
-  labelElement.className = 'text-[0.8125rem] font-medium text-ink'
+  labelElement.className = 'text-[0.875rem] font-extrabold text-ink'
   labelElement.textContent = label
 
   const input = document.createElement('input')
@@ -64,8 +64,8 @@ function addPasswordToggle(input) {
   const toggle = document.createElement('button')
   toggle.type = 'button'
   toggle.className = [
-    'absolute inset-y-0 end-0 flex min-w-20 items-center justify-center rounded-r-xl px-3',
-    'text-[0.9375rem] text-accent transition-colors hover:text-accent-hover',
+    'absolute inset-y-0 end-0 flex min-w-20 items-center justify-center rounded-r-2xl px-3',
+    'text-[0.9375rem] font-extrabold text-accent transition-colors hover:text-accent-hover',
     'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent',
   ].join(' ')
   toggle.setAttribute('aria-pressed', 'false')
@@ -88,7 +88,7 @@ function addPasswordToggle(input) {
 
 function addCapsLockHint({ input, error }) {
   const hint = document.createElement('p')
-  hint.className = 'hidden text-[0.8125rem] leading-snug text-ink-muted'
+  hint.className = 'hidden text-[0.8125rem] leading-snug font-bold text-ink-muted'
   hint.setAttribute('aria-live', 'polite')
 
   function update(event) {
@@ -117,9 +117,11 @@ export function submitButton(label) {
   const button = document.createElement('button')
   button.type = 'submit'
   button.className = [
-    'mt-2 flex h-12 w-full min-w-0 items-center justify-center rounded-xl bg-accent px-4',
-    'text-[1.0625rem] font-semibold text-white transition-[background-color,opacity] duration-200',
-    'hover:bg-accent-hover active:opacity-85',
+    'mt-2 flex h-12 w-full min-w-0 items-center justify-center rounded-2xl',
+    'border-b-4 border-accent-press bg-accent px-4',
+    'text-[0.9375rem] font-extrabold tracking-[0.06em] text-white uppercase',
+    'transition-[transform,border-width,background-color] duration-75 hover:bg-accent-hover',
+    'active:mb-1 active:translate-y-1 active:border-b-0',
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
     'disabled:cursor-wait disabled:opacity-60',
   ].join(' ')
@@ -136,7 +138,7 @@ export function setSubmitPending(button, pending, pendingLabel) {
 export function formAlert() {
   const alert = document.createElement('p')
   alert.className =
-    'rounded-xl bg-red-50 px-4 py-3 text-[0.9375rem] leading-snug text-pretty text-red-700'
+    'rounded-2xl border-2 border-red-200 bg-red-50 px-4 py-3 text-[0.9375rem] leading-snug font-bold text-pretty text-red-700'
   alert.setAttribute('role', 'alert')
   return alert
 }
@@ -153,7 +155,7 @@ export function clearFormAlert(alert) {
 export function notice(message) {
   const element = document.createElement('p')
   element.className =
-    'rounded-xl bg-accent-soft px-4 py-3 text-[0.9375rem] leading-snug text-pretty text-ink'
+    'rounded-2xl border-2 border-accent-line bg-accent-soft px-4 py-3 text-[0.9375rem] leading-snug font-bold text-pretty text-ink'
   element.setAttribute('role', 'status')
   element.textContent = message
   return element

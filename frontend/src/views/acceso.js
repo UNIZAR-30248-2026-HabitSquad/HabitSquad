@@ -10,8 +10,8 @@ import {
   showFormAlert,
   submitButton,
 } from '../components/forms.js'
-import { splitLayout } from '../components/layout.js'
-import { authTabs, passwordRecoveryLink } from '../components/navigation.js'
+import { accessLayout } from '../components/layout.js'
+import { passwordRecoveryLink } from '../components/navigation.js'
 import { validateLogin } from './login.js'
 import { validateRegistration } from './registro.js'
 
@@ -19,12 +19,14 @@ const COPY = {
   login: {
     title: 'Iniciar sesión',
     description: 'Cumple tu hábito. Que no caiga la racha.',
+    bubble: '¡Tu escuadrón te espera!',
     submit: 'Entrar',
     pending: 'Entrando…',
   },
   register: {
     title: 'Registrarme',
-    description: 'Un hábito al día, una racha compartida. Empieza creando tu cuenta.',
+    description: 'Un hábito al día, una racha compartida.',
+    bubble: '¡Únete a la racha!',
     submit: 'Crear cuenta',
     pending: 'Creando cuenta…',
   },
@@ -33,13 +35,15 @@ const COPY = {
 function accesoScreen({ mode, onSubmit, notice: noticeMessage } = {}) {
   const isLogin = mode === 'login'
   const copy = COPY[mode]
-  const { main, content } = splitLayout({
+  const { main, content } = accessLayout({
+    active: mode,
     title: copy.title,
     description: copy.description,
+    bubble: copy.bubble,
   })
 
   const form = document.createElement('form')
-  form.className = 'mt-7 flex min-w-0 flex-col gap-5'
+  form.className = 'mt-5 flex min-w-0 flex-col gap-4'
   form.noValidate = true
 
   const email = labeledField({
@@ -62,7 +66,8 @@ function accesoScreen({ mode, onSubmit, notice: noticeMessage } = {}) {
   const alert = formAlert()
 
   const note = document.createElement('p')
-  note.className = 'mt-8 text-[0.875rem] leading-relaxed text-pretty text-ink-muted'
+  note.className =
+    'mt-4 text-center text-[0.8125rem] font-semibold text-pretty text-ink-muted [@media(max-height:680px)]:hidden'
   note.textContent = 'Después podrás crear un escuadrón o unirte a uno.'
 
   function clearField(field) {
@@ -116,7 +121,6 @@ function accesoScreen({ mode, onSubmit, notice: noticeMessage } = {}) {
   if (isLogin) form.append(passwordRecoveryLink())
   form.append(submit)
 
-  content.append(authTabs(mode))
   if (noticeMessage) {
     const noticeWrapper = document.createElement('div')
     noticeWrapper.className = 'mt-5'

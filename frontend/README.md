@@ -68,30 +68,32 @@ sesión. Ambas redirecciones sustituyen la entrada del historial.
 ## Diseño responsive y componentes
 
 La interfaz es mobile-first: primero se compone para una columna estrecha y
-después se adapta con los prefijos `sm:` y `lg:` de Tailwind. El estilo es
-minimalista: fondo claro, tipografía del sistema y un único color de acento.
-Este diseño solo se aplica a las pantallas de acceso (iniciar sesión,
-registro y recuperar contraseña); el resto mantiene su propio estilo.
+después se adapta con los prefijos `sm:` y `lg:` de Tailwind. Las pantallas de
+acceso (iniciar sesión, registro y recuperar contraseña) siguen un estilo tipo
+Duolingo con cristal: fondo de colores, tarjetas translúcidas, letra Nunito,
+botones gruesos y la mascota del escuadrón. El resto de pantallas mantiene su
+propio estilo. Todo cabe en la pantalla sin hacer scroll, también en móviles
+pequeños.
+
 Los colores son tokens de `src/style.css` (`bg-canvas`, `text-ink`,
 `text-ink-muted`, `bg-accent`, `text-streak`…); no se escriben valores
-hexadecimales en las vistas. El naranja de la racha se reserva para el número
-de días.
-
-En pantallas grandes, junto al formulario aparece un móvil con el panel del
-escuadrón tal como está en el diseño; en el móvil solo se ve el formulario.
+hexadecimales en las vistas. El naranja de la racha se reserva para los días
+de racha. Las animaciones solo se activan con `motion-safe:` y el cristal se
+vuelve opaco si el sistema pide reducir la transparencia.
 
 Las piezas repetidas viven en `src/components/` y las pantallas solo componen
 esos bloques y contienen su lógica:
 
-- `layout.js`: `splitLayout`, columna principal con marca, título y contenido,
-  y la vista previa en escritorio.
-- `squadPreview.js`: maqueta decorativa del panel del escuadrón (oculta a
-  lectores de pantalla).
+- `layout.js`: `accessLayout`, con la barra superior, la mascota con su
+  bocadillo, la tarjeta con título y contenido y, en escritorio, las insignias
+  decorativas (ocultas a lectores de pantalla).
+- `navbar.js`: barra de acceso con «Cómo funciona», «Instalar app» (solo si el
+  navegador permite instalar la PWA, ver `src/install.js`), los enlaces de
+  cuenta y el menú desplegable en móvil.
 - `forms.js`: campos, contraseña con mostrar/ocultar, errores, avisos y botón
   de envío con estado de espera.
-- `navigation.js`: selector Iniciar sesión / Registrarme, enlace de
-  recuperación y enlace de volver.
-- `brand.js` e `icons.js`: icono de la app, nombre e iconos SVG.
+- `navigation.js`: enlace de recuperación y enlace de volver.
+- `brand.js` e `icons.js`: icono de la app e iconos SVG.
 
 Al crear una pantalla nueva se reutilizan estos componentes antes de copiar
 clases o crear otra variante parecida.

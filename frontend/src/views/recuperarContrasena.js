@@ -9,20 +9,19 @@ import {
   showFormAlert,
   submitButton,
 } from '../components/forms.js'
-import { splitLayout } from '../components/layout.js'
+import { accessLayout } from '../components/layout.js'
 import { backLink } from '../components/navigation.js'
 import { validateEmail } from './login.js'
 
 export function recuperarContrasenaScreen({ onSubmit } = {}) {
-  const { main, content } = splitLayout({
+  const { main, content } = accessLayout({
     title: 'Recuperar contraseña',
-    description:
-      'Escribe el correo de tu cuenta y te enviaremos un enlace para crear una contraseña nueva.',
-    top: backLink({ href: '/login', label: 'Iniciar sesión' }),
+    description: 'Te enviaremos un enlace para crear una contraseña nueva.',
+    bubble: '¡Te echo una mano!',
   })
 
   const form = document.createElement('form')
-  form.className = 'flex min-w-0 flex-col gap-5'
+  form.className = 'mt-5 flex min-w-0 flex-col gap-4'
   form.noValidate = true
 
   const email = labeledField({
@@ -67,6 +66,7 @@ export function recuperarContrasenaScreen({ onSubmit } = {}) {
     }
 
     const sent = document.createElement('div')
+    sent.className = 'mt-5'
     sent.append(
       notice(
         `Si hay una cuenta con ${result.email}, te hemos enviado un enlace. ` +
@@ -77,6 +77,6 @@ export function recuperarContrasenaScreen({ onSubmit } = {}) {
   })
 
   form.append(email.wrapper, submit)
-  content.append(form)
+  content.append(form, backLink({ href: '/login', label: 'Volver a iniciar sesión' }))
   return main
 }
