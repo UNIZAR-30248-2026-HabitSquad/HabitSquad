@@ -70,8 +70,8 @@ function mascot() {
   )
   image.src = mascotUrl
   image.alt = ''
-  image.width = 299
-  image.height = 437
+  image.width = 312
+  image.height = 360
   image.decoding = 'async'
   image.draggable = false
   return image
