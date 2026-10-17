@@ -87,13 +87,12 @@ esos bloques y contienen su lógica:
 - `layout.js`: `accessLayout`, con la barra superior, la mascota con su
   bocadillo, la tarjeta con título y contenido y, en escritorio, las insignias
   decorativas (ocultas a lectores de pantalla).
-- `navbar.js`: barra de acceso con «Cómo funciona», «Instalar app» (solo si el
-  navegador permite instalar la PWA, ver `src/install.js`), los enlaces de
-  cuenta y el menú desplegable en móvil.
+- `navbar.js`: barra de acceso con el logo y los enlaces de iniciar sesión y
+  registrarme.
 - `forms.js`: campos, contraseña con mostrar/ocultar, errores, avisos y botón
   de envío con estado de espera.
 - `navigation.js`: enlace de recuperación y enlace de volver.
-- `brand.js` e `icons.js`: icono de la app e iconos SVG.
+- `brand.js` e `icons.js`: icono de la app y la llama de la racha.
 
 Al crear una pantalla nueva se reutilizan estos componentes antes de copiar
 clases o crear otra variante parecida.
