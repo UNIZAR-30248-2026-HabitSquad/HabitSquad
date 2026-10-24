@@ -17,16 +17,15 @@ describe('loginScreen', () => {
     expect(element.querySelector('h1').textContent).toBe('Iniciar sesión')
     expect(element.className).toContain('w-full')
     expect(element.className).toContain('min-h-dvh')
-    expect(element.querySelector(':scope > div').className).toContain('max-w-md')
     expect(element.textContent).toContain('HabitSquad')
     expect(element.textContent).toContain('Cumple tu hábito. Que no caiga la racha.')
     expect(element.textContent).toContain('Correo')
     expect(element.textContent).toContain('Contraseña')
     expect(element.querySelector('input[name="email"]').placeholder).toBe('tu@correo.com')
     expect(element.querySelector('input[name="password"]').placeholder).toBe(
-      'Mínimo 8 caracteres',
+      'Tu contraseña',
     )
-    expect(element.querySelector('button').textContent).toBe('Entrar')
+    expect(element.querySelector('button[type="submit"]').textContent).toBe('Entrar')
     expect(element.textContent).toContain(
       'Después podrás crear un escuadrón o unirte a uno.',
     )
@@ -65,4 +64,10 @@ describe('loginScreen', () => {
       password: 'secreta',
     })
   })
+
+  // T12: pruebas pendientes del inicio de sesión.
+  it.todo('muestra y oculta la contraseña')
+  it.todo('muestra el aviso de sesión caducada')
+  it.todo('avisa de que están activadas las mayúsculas')
+  it.todo('muestra el error del servidor y selecciona la contraseña')
 })

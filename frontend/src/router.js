@@ -2,10 +2,16 @@ export function matchRoute(routes, pathname) {
   return routes.find((route) => route.path === pathname) ?? null
 }
 
-export function createRouter({ routes, notFound, root }) {
+export function createRouter({ routes, notFound, root, guard }) {
   function render() {
     const route = matchRoute(routes, window.location.pathname) ?? notFound
-    root.replaceChildren(route.view())
+    const redirect = guard?.(route)
+    if (redirect && redirect !== window.location.pathname) {
+      window.history.replaceState({}, '', redirect)
+      render()
+      return
+    }
+    root.replaceChildren(route.view({ navigate }))
     document.title =
       route.title === 'HabitSquad' ? route.title : `${route.title} · HabitSquad`
   }

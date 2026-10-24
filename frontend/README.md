@@ -57,8 +57,82 @@ El enrutador (`src/router.js`) usa la History API: las URL son normales
 <a href="/registro" data-link>Registrarme</a>
 ```
 
-Desde código se navega con `router.navigate('/login')`. Las rutas que no
-existen muestran la pantalla «Página no encontrada».
+Desde código se navega con `router.navigate('/login')`; cada pantalla recibe
+`navigate` como argumento de `view`. Las rutas que no existen muestran la
+pantalla «Página no encontrada».
+
+Una ruta con `private: true` exige sesión: sin ella, el enrutador lleva a
+`/login`. Una con `guestOnly: true` (login y registro) lleva a `/` si ya hay
+sesión. Ambas redirecciones sustituyen la entrada del historial.
+
+## Diseño responsive y componentes
+
+La interfaz es mobile-first: primero se compone para una columna estrecha y
+después se adapta con los prefijos `sm:` y `lg:` de Tailwind. Las pantallas de
+acceso (iniciar sesión, registro y recuperar contraseña) siguen un estilo tipo
+Duolingo con cristal: fondo de colores, tarjetas translúcidas, letra Nunito,
+botones gruesos y la mascota del escuadrón. El resto de pantallas mantiene su
+propio estilo. Todo cabe en la pantalla sin hacer scroll, también en móviles
+pequeños.
+
+Los colores son tokens de `src/style.css` (`bg-canvas`, `text-ink`,
+`text-ink-muted`, `bg-accent`, `text-streak`…); no se escriben valores
+hexadecimales en las vistas. El naranja de la racha se reserva para los días
+de racha. Las animaciones solo se activan con `motion-safe:` y el cristal se
+vuelve opaco si el sistema pide reducir la transparencia.
+
+Las piezas repetidas viven en `src/components/` y las pantallas solo componen
+esos bloques y contienen su lógica:
+
+- `layout.js`: `accessLayout`, con la barra superior, la mascota con su
+  bocadillo, la tarjeta con título y contenido y, en escritorio, las insignias
+  decorativas (ocultas a lectores de pantalla).
+- `navbar.js`: barra de acceso con el logo y los enlaces de iniciar sesión y
+  registrarme.
+- `forms.js`: campos, contraseña con mostrar/ocultar, errores, avisos y botón
+  de envío con estado de espera.
+- `navigation.js`: enlace de recuperación y enlace de volver.
+- `brand.js` e `icons.js`: icono de la app y la llama de la racha.
+
+Al crear una pantalla nueva se reutilizan estos componentes antes de copiar
+clases o crear otra variante parecida.
+
+## Sesión y llamadas a la API
+
+Al iniciar sesión, `login()` (`src/api.js`) guarda el access y el refresh
+token en `localStorage` (`src/session.js`). Las llamadas a endpoints que
+requieren sesión se hacen con `authFetch`, que acepta los mismos argumentos que
+`fetch` y añade `Authorization: Bearer <access>`:
+
+```js
+import { authFetch } from './api.js'
+
+const response = await authFetch('/api/escuadrones/', { method: 'POST', body })
+```
+
+Si la API responde `401`, `authFetch` renueva los tokens con
+`/api/auth/token/refresh/` y repite la petición una vez. Si varias peticiones
+caducan a la vez, se hace una sola renovación. Si el refresh ya no vale, borra
+la sesión y la aplicación vuelve a `/login`. `logout()` revoca el refresh en
+`/api/auth/logout/` y borra la sesión aunque el backend no responda.
+
+El flujo completo de tokens está en `docs/AUTENTICACION_JWT.md`.
+
+### Recuperar la contraseña
+
+La pantalla `/recuperar-contrasena` envía el correo a
+`POST /api/auth/password-reset/` con `{ "email": "..." }`. Ese endpoint aún no
+existe en el backend; mientras tanto la API responde `404` y la pantalla avisa
+de que la función todavía no está disponible. Cuando se implemente, debe
+responder `204` exista o no la cuenta, para no revelar qué correos están
+registrados, y `429` si se supera el límite de intentos. La pantalla para
+escribir la contraseña nueva desde el enlace del correo se hará junto con ese
+endpoint.
+
+En desarrollo, `npm run dev` y `npm run preview` reenvían `/api` al backend en
+`http://localhost:8000`, así que hay que tener `python manage.py runserver` en
+marcha para iniciar sesión. En producción Caddy sirve frontend y API en el
+mismo dominio.
 
 ## PWA
 
@@ -81,10 +155,13 @@ HTTPS, así que se prueba con la versión desplegada.
 ## Estructura
 
 - `index.html`: punto de entrada de la aplicación.
-- `src/main.js`: arranca el enrutador.
+- `src/main.js`: arranca el enrutador y vuelve a `/login` si caduca la sesión.
 - `src/router.js`: enrutador con la History API.
-- `src/routes.js`: rutas y pantallas.
-- `src/views/`: pantallas y componentes de interfaz.
+- `src/routes.js`: rutas, pantallas y rutas que exigen sesión.
+- `src/api.js`: inicio y cierre de sesión, renovación de tokens y `authFetch`.
+- `src/session.js`: guarda los tokens en el navegador.
+- `src/components/`: piezas reutilizables de diseño, formularios y navegación.
+- `src/views/`: pantallas de la aplicación.
 - `src/style.css`: importa Tailwind CSS.
 - `public/`: ficheros estáticos que se copian tal cual al build, incluidos los
   iconos de la PWA.

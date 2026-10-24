@@ -95,4 +95,6 @@ describe('createRouter', () => {
     window.dispatchEvent(new PopStateEvent('popstate'))
     expect(root.textContent).toBe('login')
   })
+
+  it.todo('redirige a la ruta que indica el guard')
 })

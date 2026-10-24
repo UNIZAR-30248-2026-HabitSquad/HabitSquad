@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { notFound, routes } from './routes.js'
+import { guard, notFound, routes } from './routes.js'
 
 describe('routes', () => {
   it.each(routes.map((route) => [route.path, route]))(
@@ -25,4 +25,21 @@ describe('routes', () => {
     expect(element.querySelector('h1').textContent).toBe(notFound.title)
     expect(element.querySelector('a[data-link]').getAttribute('href')).toBe('/')
   })
+})
+
+describe('sesión', () => {
+  it('sin sesión las rutas privadas llevan a /login', () => {
+    localStorage.clear()
+    const privateRoute = routes.find((route) => route.path === '/')
+    expect(guard(privateRoute)).toBe('/login')
+  })
+
+  // T12: pruebas pendientes de la sesión.
+  it.todo('con sesión, /login y /registro llevan al inicio')
+  it.todo('un login correcto guarda los tokens y abre el inicio')
+  it.todo('traduce los errores 401 y 429 del login')
+  it.todo('renueva el access una sola vez aunque fallen dos peticiones a la vez')
+  it.todo('si la renovación falla, cierra la sesión y vuelve a /login?sesion=caducada')
+  it.todo('cerrar sesión borra los tokens aunque falle la petición')
+  it.todo('ignora una sesión guardada corrupta')
 })
