@@ -27,7 +27,7 @@ Desde `backend/` con el entorno virtual activado:
 ```bash
 python manage.py migrate
 python manage.py check
-pytest --cov=usuarios --cov=autenticacion --cov-report=term-missing --cov-fail-under=100
+pytest --cov=usuarios --cov=autenticacion --cov=escuadrones --cov-report=term-missing --cov-fail-under=100
 ruff check .
 ruff format --check .
 python manage.py runserver
@@ -65,6 +65,17 @@ responde `400 Bad Request`.
 Para entender el ciclo de tokens, sus límites de seguridad y probarlo
 manualmente, consulta la [guía de autenticación JWT](../docs/AUTENTICACION_JWT.md).
 
+## API de escuadrones
+
+El endpoint autenticado `POST /api/escuadrones/` recibe `nombre` y crea un
+escuadrón. El usuario del access token queda como miembro administrador y el
+escuadrón obtiene un `codigo_invitacion` único de 6 caracteres (`A–Z`, `0–9`).
+La respuesta incluye `id`, `nombre`, `codigo_invitacion`, `creador_id` y
+`miembros`.
+
+El contrato de entrada y respuesta está documentado en
+[docs/CREAR_ESCUADRON.md](../docs/CREAR_ESCUADRON.md).
+
 ## Usuario
 
 La app `usuarios` contiene el modelo `CustomUser`, su configuración de
@@ -95,12 +106,21 @@ usuarios/
 ├── models/                     # Entidades persistentes compartidas
 ├── admin.py                   # Integración con Django Admin
 └── tests/                      # Pruebas del modelo de usuario
+
+escuadrones/
+├── models/                     # Escuadrón y membresía
+├── crear/                      # Creación de escuadrón
+│   ├── api/
+│   ├── services/
+│   └── tests/
+└── tests/                      # Pruebas del modelo
 ```
 
 El flujo de registro es `registro/api/urls.py` → `registro/api/views.py` →
 `registro/api/serializers.py` → `registro/services/registration.py` →
 `usuarios.models`. Login usa SimpleJWT para autenticar y emitir tokens; refresh
-usa SimpleJWT para rotarlos y almacenarlos en blacklist. Cada funcionalidad
-mantiene sus pruebas en su propio `tests/`. Solo se añaden modelos bajo
-`usuarios/models/` si hacen falta nuevas entidades persistentes; no se duplica
-el usuario por cada operación de autenticación.
+usa SimpleJWT para rotarlos y almacenarlos en blacklist. La creación de
+escuadrón es `escuadrones/crear/api/` → `crear/services/creation.py` →
+`escuadrones.models`. Cada funcionalidad mantiene sus pruebas en su propio
+`tests/`. Solo se añaden modelos bajo `usuarios/models/` si hacen falta nuevas
+entidades de usuario; no se duplica el usuario por cada operación.
