@@ -185,4 +185,27 @@ describe('validación local del formulario de registro', () => {
       expect(input.getAttribute('aria-invalid')).toBe('false')
     }
   })
+
+  it('muestra el error de email que devuelve el backend', async () => {
+    const screen = mount(
+      registroScreen({
+        onSubmit: () =>
+          Promise.resolve({
+            ok: false,
+            errors: { email: 'Ya existe una cuenta con este email.' },
+          }),
+      }),
+    )
+    fill(screen, { email: VALID_EMAIL, password: VALID_PASSWORD })
+    submit(screen)
+
+    await vi.waitFor(() => {
+      const emailAlert = screen.querySelector('#registro-email-error')
+      expect(emailAlert.textContent).toBe('Ya existe una cuenta con este email.')
+      expect(emailAlert.classList.contains('hidden')).toBe(false)
+    })
+    expect(screen.querySelector('input[name="email"]').getAttribute('aria-invalid')).toBe(
+      'true',
+    )
+  })
 })

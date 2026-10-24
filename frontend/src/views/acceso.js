@@ -1,4 +1,5 @@
 import { validateRegistration } from './registro.js'
+import { openPath } from '../navigation.js'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -163,6 +164,25 @@ function accesoScreen({ mode, onSubmit } = {}) {
     'transition-colors hover:bg-[#4c28cc]',
   ].join(' ')
   submitButton.textContent = isLogin ? 'Entrar' : 'Crear cuenta'
+  submitButton.className += ' disabled:cursor-wait disabled:opacity-70'
+
+  const requestFeedback = document.createElement('p')
+  requestFeedback.id = 'login-request-feedback'
+  requestFeedback.className = 'hidden text-sm font-medium text-red-600'
+
+  function clearRequestFeedback() {
+    requestFeedback.textContent = ''
+    requestFeedback.classList.add('hidden')
+    requestFeedback.removeAttribute('role')
+  }
+
+  function showRequestFeedback(message, ok) {
+    requestFeedback.textContent = message
+    requestFeedback.classList.remove('hidden')
+    requestFeedback.classList.toggle('text-red-600', !ok)
+    requestFeedback.classList.toggle('text-[#211a45]', ok)
+    requestFeedback.setAttribute('role', ok ? 'status' : 'alert')
+  }
 
   const note = document.createElement('p')
   note.className =
@@ -171,9 +191,11 @@ function accesoScreen({ mode, onSubmit } = {}) {
 
   email.input.addEventListener('input', () => {
     clearFieldError(email.input, email.error)
+    clearRequestFeedback()
   })
   password.input.addEventListener('input', () => {
     clearFieldError(password.input, password.error)
+    clearRequestFeedback()
   })
 
   form.addEventListener('submit', (event) => {
@@ -196,18 +218,51 @@ function accesoScreen({ mode, onSubmit } = {}) {
       clearFieldError(password.input, password.error)
     }
 
+    clearRequestFeedback()
+
     if (!result.ok) {
       const firstInvalid = result.errors.email ? email.input : password.input
       firstInvalid.focus()
       return
     }
 
-    if (typeof onSubmit === 'function') {
-      onSubmit({ email: result.email, password: result.password })
-    }
+    if (typeof onSubmit !== 'function') return
+
+    const pending = onSubmit({ email: result.email, password: result.password })
+    if (!pending || typeof pending.then !== 'function') return
+
+    submitButton.disabled = true
+    pending.then(
+      (response) => {
+        submitButton.disabled = false
+        if (response?.errors?.email) {
+          setFieldError(email.input, email.error, response.errors.email)
+        }
+        if (response?.errors?.password) {
+          setFieldError(password.input, password.error, response.errors.password)
+        }
+        if (response?.errors?.email || response?.errors?.password) {
+          const firstInvalid = response.errors.email ? email.input : password.input
+          firstInvalid.focus()
+        }
+        if (response?.message) {
+          showRequestFeedback(response.message, response.ok === true)
+        }
+        if (response?.ok && response.redirect) openPath(response.redirect)
+      },
+      () => {
+        submitButton.disabled = false
+        showRequestFeedback(
+          isLogin
+            ? 'No se ha podido iniciar sesión. Inténtalo de nuevo.'
+            : 'No se ha podido crear la cuenta. Inténtalo de nuevo.',
+          false,
+        )
+      },
+    )
   })
 
-  form.append(email.wrapper, password.wrapper, submitButton)
+  form.append(email.wrapper, password.wrapper, requestFeedback, submitButton)
   column.append(heading, brand, tagline, tabs, form, note)
   main.append(column)
   return main

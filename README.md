@@ -55,6 +55,19 @@ instrucciones específicas cuando esas aplicaciones estén preparadas.
 - Se documentarán los cambios de dependencias y versiones para que el equipo
   pueda reproducir el entorno.
 
+## Registro de cuenta
+
+En la aplicación, **Registrarme** (`/registro`) crea la cuenta con correo y
+contraseña mediante `POST /api/auth/register/`. Esa respuesta no incluye
+tokens. Si el alta es correcta, la aplicación pide `POST /api/auth/token/` con
+las mismas credenciales, guarda `habitsquad.access` y `habitsquad.refresh`, y
+abre **Menú principal** (`/menu`).
+
+El contrato de esos endpoints está en OpenAPI (`/api/schema/` y `/api/docs/`
+con el backend en marcha). El detalle de la sesión y la prueba manual están en
+[docs/AUTENTICACION_JWT.md](docs/AUTENTICACION_JWT.md). Los endpoints también
+están resumidos en [backend/README.md](backend/README.md).
+
 ## Documentación
 
 - `docs/DEPENDENCIAS.md`: runtimes, versiones, librerías principales e

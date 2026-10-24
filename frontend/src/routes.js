@@ -1,4 +1,6 @@
+import { registerWithPassword } from './auth/registro.js'
 import { loginScreen, registroScreen } from './views/acceso.js'
+import { menuScreen } from './views/menu.js'
 import { screen } from './views/screen.js'
 import { unirseEscuadronScreen } from './views/unirseEscuadron.js'
 
@@ -28,7 +30,12 @@ export const routes = [
   {
     path: '/registro',
     title: 'Registrarme',
-    view: () => registroScreen(),
+    view: () => registroScreen({ onSubmit: registerWithPassword }),
+  },
+  {
+    path: '/menu',
+    title: 'Menú principal',
+    view: () => menuScreen(),
   },
   {
     path: '/escuadrones/nuevo',
