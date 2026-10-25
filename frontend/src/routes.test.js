@@ -153,7 +153,4 @@ describe('sesión', () => {
       expect(navigate).toHaveBeenCalledWith('/login')
     })
   })
-
-  // T12: para cuando se haga test evento de sesión caducada en main
-  it.todo('si la renovación falla, cierra la sesión y vuelve a /login?sesion=caducada')
 })
