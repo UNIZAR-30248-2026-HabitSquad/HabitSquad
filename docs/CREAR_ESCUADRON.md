@@ -93,4 +93,4 @@ Ejemplo sin autenticación (`401`):
 - El alfabeto del código coincide con el esperado por la pantalla de unirse
   (6 caracteres `A–Z` / `0–9`).
 - Este documento cubre únicamente la creación. Unirse a un escuadrón con el
-  código es un endpoint distinto.
+  código está documentado en [UNIRSE_ESCUADRON.md](UNIRSE_ESCUADRON.md).
