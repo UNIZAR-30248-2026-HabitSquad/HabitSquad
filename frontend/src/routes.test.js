@@ -1,6 +1,33 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ApiError, login, logout } from './api.js'
 import { guard, notFound, routes } from './routes.js'
-import { saveSession } from './session.js'
+import { hasSession, saveSession } from './session.js'
+
+vi.mock('./api.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    login: vi.fn(),
+    logout: vi.fn(),
+    requestPasswordReset: vi.fn(),
+  }
+})
+
+function mount(routePath, navigate = vi.fn()) {
+  const route = routes.find((entry) => entry.path === routePath)
+  const element = route.view({ navigate })
+  document.body.replaceChildren(element)
+  return { element, navigate }
+}
+
+function fillLogin(element, { email, password }) {
+  element.querySelector('input[name="email"]').value = email
+  element.querySelector('input[name="password"]').value = password
+}
+
+function submit(element) {
+  element.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }))
+}
 
 describe('routes', () => {
   it.each(routes.map((route) => [route.path, route]))(
@@ -31,6 +58,8 @@ describe('routes', () => {
 describe('sesión', () => {
   beforeEach(() => {
     localStorage.clear()
+    login.mockReset()
+    logout.mockReset()
   })
 
   it('sin sesión las rutas privadas llevan a /login', () => {
@@ -55,11 +84,76 @@ describe('sesión', () => {
     expect(guard(privateRoute)).toBeNull()
   })
 
-  // T12: pruebas del flujo de login
-  it.todo('un login correcto guarda los tokens y abre el inicio')
-  it.todo('traduce los errores 401 y 429 del login')
-  it.todo('renueva el access una sola vez aunque fallen dos peticiones a la vez')
+  it('un login correcto guarda los tokens y abre el inicio', async () => {
+    login.mockImplementation(async () => {
+      saveSession({ access: 'access-token', refresh: 'refresh-token' })
+    })
+    const { element, navigate } = mount('/login')
+
+    fillLogin(element, {
+      email: ' Persona@Example.com ',
+      password: 'secreta',
+    })
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(login).toHaveBeenCalledWith({
+        email: 'persona@example.com',
+        password: 'secreta',
+      })
+      expect(hasSession()).toBe(true)
+      expect(navigate).toHaveBeenCalledWith('/')
+    })
+  })
+
+  it('traduce el error 401 del login', async () => {
+    login.mockRejectedValue(new ApiError(401, { detail: 'No active account' }))
+    const { element, navigate } = mount('/login')
+
+    fillLogin(element, { email: 'persona@example.com', password: 'mala' })
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(element.textContent).toContain(
+        'El correo o la contraseña no son correctos.',
+      )
+    })
+    expect(navigate).not.toHaveBeenCalled()
+    expect(hasSession()).toBe(false)
+  })
+
+  it('traduce el error 429 del login', async () => {
+    login.mockRejectedValue(new ApiError(429, { detail: 'throttled' }))
+    const { element, navigate } = mount('/login')
+
+    fillLogin(element, { email: 'persona@example.com', password: 'secreta' })
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(element.textContent).toContain(
+        'Has hecho demasiados intentos. Espera un rato y vuelve a probar.',
+      )
+    })
+    expect(navigate).not.toHaveBeenCalled()
+    expect(hasSession()).toBe(false)
+  })
+
+  it('cerrar sesión llama a logout y vuelve a /login', async () => {
+    saveSession({ access: 'access-token', refresh: 'refresh-token' })
+    logout.mockResolvedValue(undefined)
+    const { element, navigate } = mount('/')
+
+    const logoutButton = [...element.querySelectorAll('button')].find(
+      (button) => button.textContent === 'Cerrar sesión',
+    )
+    logoutButton.click()
+
+    await vi.waitFor(() => {
+      expect(logout).toHaveBeenCalledTimes(1)
+      expect(navigate).toHaveBeenCalledWith('/login')
+    })
+  })
+
+  // T12: para cuando se haga test evento de sesión caducada en main
   it.todo('si la renovación falla, cierra la sesión y vuelve a /login?sesion=caducada')
-  it.todo('cerrar sesión borra los tokens aunque falle la petición')
-  it.todo('ignora una sesión guardada corrupta')
 })
