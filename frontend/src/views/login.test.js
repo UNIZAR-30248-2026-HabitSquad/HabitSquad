@@ -1,14 +1,52 @@
 import { describe, expect, it, vi } from 'vitest'
 import { loginScreen } from './acceso.js'
+import { validateLogin } from './login.js'
 
 function mount(screen = loginScreen()) {
   document.body.replaceChildren(screen)
   return screen
 }
 
+function fill(element, { email = '', password = '' } = {}) {
+  element.querySelector('input[name="email"]').value = email
+  element.querySelector('input[name="password"]').value = password
+}
+
 function submit(element) {
   element.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }))
 }
+
+function passwordToggle(element) {
+  return element.querySelector('button[aria-label="Mostrar la contraseña"], button[aria-label="Ocultar la contraseña"]')
+}
+
+function dispatchCapsLock(input, enabled) {
+  const event = new KeyboardEvent('keydown', { key: 'A', bubbles: true })
+  Object.defineProperty(event, 'getModifierState', {
+    value: (modifier) => modifier === 'CapsLock' && enabled,
+  })
+  input.dispatchEvent(event)
+}
+
+describe('validateLogin', () => {
+  it('acepta un correo normalizado y una contraseña no vacía', () => {
+    expect(
+      validateLogin({ email: ' Persona@Example.com ', password: 'secreta' }),
+    ).toEqual({
+      ok: true,
+      email: 'persona@example.com',
+      password: 'secreta',
+      errors: {},
+    })
+  })
+
+  it('rechaza un correo inválido o una contraseña vacía', () => {
+    expect(validateLogin({ email: 'no-es-correo', password: '' }).errors).toEqual({
+      email: 'Introduce un correo válido.',
+      password: 'Introduce tu contraseña.',
+    })
+  })
+})
 
 describe('loginScreen', () => {
   it('muestra la vista de iniciar sesión', () => {
@@ -55,8 +93,7 @@ describe('loginScreen', () => {
   it('entrega el correo normalizado y la contraseña cuando son válidos', () => {
     const onSubmit = vi.fn()
     const element = mount(loginScreen({ onSubmit }))
-    element.querySelector('input[name="email"]').value = ' Persona@Example.com '
-    element.querySelector('input[name="password"]').value = 'secreta'
+    fill(element, { email: ' Persona@Example.com ', password: 'secreta' })
     submit(element)
 
     expect(onSubmit).toHaveBeenCalledWith({
@@ -65,9 +102,70 @@ describe('loginScreen', () => {
     })
   })
 
-  // T12: pruebas pendientes del inicio de sesión.
-  it.todo('muestra y oculta la contraseña')
-  it.todo('muestra el aviso de sesión caducada')
-  it.todo('avisa de que están activadas las mayúsculas')
-  it.todo('muestra el error del servidor y selecciona la contraseña')
+  it('muestra y oculta la contraseña', () => {
+    const element = mount()
+    const password = element.querySelector('input[name="password"]')
+    const toggle = passwordToggle(element)
+
+    expect(password.type).toBe('password')
+    expect(toggle.textContent).toBe('Mostrar')
+    expect(toggle.getAttribute('aria-pressed')).toBe('false')
+
+    toggle.click()
+    expect(password.type).toBe('text')
+    expect(toggle.textContent).toBe('Ocultar')
+    expect(toggle.getAttribute('aria-pressed')).toBe('true')
+    expect(toggle.getAttribute('aria-label')).toBe('Ocultar la contraseña')
+
+    toggle.click()
+    expect(password.type).toBe('password')
+    expect(toggle.textContent).toBe('Mostrar')
+    expect(toggle.getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('muestra el aviso de sesión caducada', () => {
+    const element = mount(
+      loginScreen({
+        notice: 'Tu sesión ha caducado. Vuelve a iniciar sesión.',
+      }),
+    )
+
+    const status = element.querySelector('[role="status"]')
+    expect(status.textContent).toBe('Tu sesión ha caducado. Vuelve a iniciar sesión.')
+  })
+
+  it('avisa de que están activadas las mayúsculas', () => {
+    const element = mount()
+    const password = element.querySelector('input[name="password"]')
+
+    dispatchCapsLock(password, true)
+    expect(element.textContent).toContain('Tienes activadas las mayúsculas.')
+
+    dispatchCapsLock(password, false)
+    expect(element.textContent).not.toContain('Tienes activadas las mayúsculas.')
+
+    dispatchCapsLock(password, true)
+    password.dispatchEvent(new FocusEvent('blur'))
+    expect(element.textContent).not.toContain('Tienes activadas las mayúsculas.')
+  })
+
+  it('muestra el error del servidor y selecciona la contraseña', async () => {
+    const onSubmit = vi.fn().mockRejectedValue(
+      new Error('El correo o la contraseña no son correctos.'),
+    )
+    const element = mount(loginScreen({ onSubmit }))
+    const password = element.querySelector('input[name="password"]')
+
+    fill(element, { email: 'persona@example.com', password: 'secreta' })
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(element.textContent).toContain(
+        'El correo o la contraseña no son correctos.',
+      )
+      expect(document.activeElement).toBe(password)
+      expect(password.selectionStart).toBe(0)
+      expect(password.selectionEnd).toBe('secreta'.length)
+    })
+  })
 })
