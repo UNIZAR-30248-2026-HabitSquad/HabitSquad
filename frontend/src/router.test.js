@@ -96,5 +96,21 @@ describe('createRouter', () => {
     expect(root.textContent).toBe('login')
   })
 
-  it.todo('redirige a la ruta que indica el guard')
+  it('redirige a la ruta que indica el guard', () => {
+    router.stop()
+    window.history.replaceState({}, '', '/login')
+    document.body.innerHTML = '<div id="app"></div>'
+    root = document.querySelector('#app')
+    router = createRouter({
+      routes,
+      notFound,
+      root,
+      guard: (route) => (route.path === '/login' ? '/' : null),
+    })
+    router.start()
+
+    expect(window.location.pathname).toBe('/')
+    expect(root.textContent).toBe('inicio')
+    expect(document.title).toBe('HabitSquad')
+  })
 })

@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { guard, notFound, routes } from './routes.js'
+import { saveSession } from './session.js'
 
 describe('routes', () => {
   it.each(routes.map((route) => [route.path, route]))(
@@ -28,14 +29,33 @@ describe('routes', () => {
 })
 
 describe('sesión', () => {
-  it('sin sesión las rutas privadas llevan a /login', () => {
+  beforeEach(() => {
     localStorage.clear()
+  })
+
+  it('sin sesión las rutas privadas llevan a /login', () => {
     const privateRoute = routes.find((route) => route.path === '/')
     expect(guard(privateRoute)).toBe('/login')
   })
 
-  // T12: pruebas pendientes de la sesión.
-  it.todo('con sesión, /login y /registro llevan al inicio')
+  it('con sesión, /login y /registro llevan al inicio', () => {
+    saveSession({ access: 'access-token', refresh: 'refresh-token' })
+
+    const loginRoute = routes.find((route) => route.path === '/login')
+    const registroRoute = routes.find((route) => route.path === '/registro')
+
+    expect(guard(loginRoute)).toBe('/')
+    expect(guard(registroRoute)).toBe('/')
+  })
+
+  it('con sesión las rutas privadas no redirigen', () => {
+    saveSession({ access: 'access-token', refresh: 'refresh-token' })
+
+    const privateRoute = routes.find((route) => route.path === '/')
+    expect(guard(privateRoute)).toBeNull()
+  })
+
+  // T12: pruebas del flujo de login
   it.todo('un login correcto guarda los tokens y abre el inicio')
   it.todo('traduce los errores 401 y 429 del login')
   it.todo('renueva el access una sola vez aunque fallen dos peticiones a la vez')
