@@ -77,7 +77,14 @@ function mascot() {
   return image
 }
 
-export function accessLayout({ active = null, title, description, bubble }) {
+export function accessLayout({
+  active = null,
+  accountLinks = true,
+  hideGreetingOnShortScreens = false,
+  title,
+  description,
+  bubble,
+}) {
   const main = element(
     'main',
     [
@@ -90,7 +97,10 @@ export function accessLayout({ active = null, title, description, bubble }) {
   const backdrop = element('div', 'access-backdrop fixed inset-0 -z-10')
   backdrop.setAttribute('aria-hidden', 'true')
 
-  const greeting = element('div', 'mb-4 flex items-center gap-4')
+  const greeting = element(
+    'div',
+    `mb-4 flex items-center gap-4 ${hideGreetingOnShortScreens ? '[@media(max-height:720px)]:hidden' : ''}`,
+  )
   greeting.append(
     mascot(),
     element(
@@ -122,6 +132,6 @@ export function accessLayout({ active = null, title, description, bubble }) {
   )
   body.append(squadBadges(), greeting, card)
 
-  main.append(backdrop, accessNavbar({ active }), body)
+  main.append(backdrop, accessNavbar({ active, accountLinks }), body)
   return { main, content }
 }
