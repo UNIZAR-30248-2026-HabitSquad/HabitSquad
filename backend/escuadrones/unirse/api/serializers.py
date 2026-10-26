@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers, status
 from rest_framework.exceptions import APIException, NotFound
 
@@ -21,8 +22,25 @@ class Conflict(APIException):
     default_code = "conflict"
 
 
+@extend_schema_field(
+    {
+        "type": "string",
+        "minLength": 6,
+        "maxLength": 6,
+        "pattern": "^[A-Za-z0-9]{6}$",
+        "description": (
+            "Código de invitación de 6 caracteres. Se aceptan minúsculas y "
+            "se normalizan a mayúsculas."
+        ),
+        "example": "X8K9QL",
+    }
+)
+class CodigoInvitacionField(serializers.CharField):
+    pass
+
+
 class EscuadronJoinSerializer(serializers.ModelSerializer):
-    codigo_invitacion = serializers.CharField()
+    codigo_invitacion = CodigoInvitacionField()
     miembros = MembresiaSerializer(source="membresias", many=True, read_only=True)
     creador_id = serializers.IntegerField(read_only=True)
 
@@ -64,3 +82,13 @@ class EscuadronJoinSerializer(serializers.ModelSerializer):
             raise NotFound(detail=str(error)) from error
         except AlreadyMemberError as error:
             raise Conflict(detail=str(error)) from error
+
+
+@extend_schema_serializer(component_name="ErrorValidacionCodigoInvitacion")
+class ErrorValidacionCodigoInvitacionSerializer(serializers.Serializer):
+    codigo_invitacion = serializers.ListField(child=serializers.CharField())
+
+
+@extend_schema_serializer(component_name="ErrorDetalleEscuadrones")
+class ErrorDetalleSerializer(serializers.Serializer):
+    detail = serializers.CharField()
