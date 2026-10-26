@@ -226,6 +226,21 @@ describe('feedback visual del código', () => {
     expectClearFeedback(screen)
   })
 
+  it('muestra el escuadrón cuando el backend confirma la unión', async () => {
+    const screen = unirseEscuadronScreen({
+      onSubmit: () => Promise.resolve({ nombre: 'Madrugadores' }),
+    })
+    document.body.replaceChildren(screen)
+    typeCode(screen, 'X8K9QL')
+    submit(screen)
+
+    await vi.waitFor(() => {
+      const success = screen.querySelector('[role="status"]')
+      expect(success.textContent).toBe('Te has unido a «Madrugadores».')
+      expect(success.classList.contains('hidden')).toBe(false)
+    })
+  })
+
   it('muestra el aviso y reactiva el botón si unirse falla', async () => {
     const screen = unirseEscuadronScreen({
       onSubmit: () => Promise.reject(new Error(UNKNOWN_CODE)),

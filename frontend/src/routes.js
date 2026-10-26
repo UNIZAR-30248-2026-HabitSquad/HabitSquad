@@ -1,4 +1,10 @@
-import { ApiError, login, logout, requestPasswordReset } from './api.js'
+import {
+  ApiError,
+  joinSquad,
+  login,
+  logout,
+  requestPasswordReset,
+} from './api.js'
 import { hasSession } from './session.js'
 import { loginScreen, registroScreen } from './views/acceso.js'
 import { recuperarContrasenaScreen } from './views/recuperarContrasena.js'
@@ -25,6 +31,31 @@ function passwordResetErrorMessage(error) {
     return 'Has hecho demasiados intentos. Espera un rato y vuelve a probar.'
   }
   return 'No se ha podido enviar el enlace. Comprueba tu conexión e inténtalo de nuevo.'
+}
+
+function joinSquadErrorMessage(error) {
+  if (!(error instanceof ApiError)) {
+    return 'No se ha podido unir al escuadrón. Comprueba tu conexión e inténtalo de nuevo.'
+  }
+  if (error.status === 400) {
+    return (
+      error.data?.codigo_invitacion?.[0] ??
+      'El código de invitación no es válido.'
+    )
+  }
+  if (error.status === 404) {
+    return (
+      error.data?.detail ??
+      'No se ha encontrado un escuadrón con ese código.'
+    )
+  }
+  if (error.status === 409) {
+    return error.data?.detail ?? 'Ya perteneces a este escuadrón.'
+  }
+  if (error.status === 401) {
+    return 'Tu sesión ha caducado. Vuelve a iniciar sesión.'
+  }
+  return 'No se ha podido unir al escuadrón. Inténtalo de nuevo.'
 }
 
 function homeScreen(onLogout) {
@@ -120,7 +151,16 @@ export const routes = [
     path: '/escuadrones/unirse',
     title: 'Únete a un escuadrón',
     private: true,
-    view: () => unirseEscuadronScreen(),
+    view: () =>
+      unirseEscuadronScreen({
+        onSubmit: async (codigo) => {
+          try {
+            return await joinSquad(codigo)
+          } catch (error) {
+            throw new Error(joinSquadErrorMessage(error), { cause: error })
+          }
+        },
+      }),
   },
 ]
 

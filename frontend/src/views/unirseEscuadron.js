@@ -97,9 +97,17 @@ export function unirseEscuadronScreen({ onSubmit } = {}) {
   errorMessage.setAttribute('role', 'alert')
   errorMessage.setAttribute('aria-live', 'polite')
 
+  const successMessage = document.createElement('p')
+  successMessage.className =
+    'hidden text-[clamp(0.8rem,2.8cqi,1rem)] leading-snug font-medium text-green-700'
+  successMessage.setAttribute('role', 'status')
+  successMessage.setAttribute('aria-live', 'polite')
+
   function showError(message) {
     const text = String(message ?? '').trim()
     if (!text) return
+    successMessage.textContent = ''
+    successMessage.classList.add('hidden')
     errorMessage.textContent = text
     errorMessage.classList.remove('hidden')
     boxes.setAttribute('aria-describedby', errorMessage.id)
@@ -112,11 +120,20 @@ export function unirseEscuadronScreen({ onSubmit } = {}) {
   function clearError() {
     errorMessage.textContent = ''
     errorMessage.classList.add('hidden')
+    successMessage.textContent = ''
+    successMessage.classList.add('hidden')
     boxes.removeAttribute('aria-describedby')
     for (const input of inputs) {
       input.setAttribute('aria-invalid', 'false')
       input.removeAttribute('aria-describedby')
     }
+  }
+
+  function showSuccess(squad) {
+    if (!squad || typeof squad.nombre !== 'string') return
+    clearError()
+    successMessage.textContent = `Te has unido a «${squad.nombre}».`
+    successMessage.classList.remove('hidden')
   }
 
   function writeFrom(start, chars) {
@@ -184,7 +201,7 @@ export function unirseEscuadronScreen({ onSubmit } = {}) {
   ].join(' ')
   submitButton.textContent = 'Unirme al escuadrón'
 
-  form.append(label, errorMessage, submitButton)
+  form.append(label, errorMessage, successMessage, submitButton)
 
   form.addEventListener('submit', (event) => {
     event.preventDefault()
@@ -204,8 +221,9 @@ export function unirseEscuadronScreen({ onSubmit } = {}) {
 
     submitButton.disabled = true
     result.then(
-      () => {
+      (squad) => {
         submitButton.disabled = false
+        showSuccess(squad)
       },
       (error) => {
         submitButton.disabled = false
