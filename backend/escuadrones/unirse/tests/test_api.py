@@ -99,3 +99,17 @@ def test_join_escuadron_with_valid_code_adds_member(
     membresia = Membresia.objects.get(escuadron=escuadron, usuario=joiner)
     assert membresia.es_administrador is False
     assert Membresia.objects.filter(escuadron=escuadron).count() == 2
+
+
+@pytest.mark.django_db
+def test_join_escuadron_with_unknown_code_returns_404(auth_joiner, escuadron, joiner):
+    response = auth_joiner.post(
+        reverse(JOIN_URL),
+        {"codigo_invitacion": "ZZZZZZ"},
+        format="json",
+    )
+
+    assert response.status_code == 404
+    assert response.data["detail"] == "No se ha encontrado un escuadrón con ese código"
+    assert not Membresia.objects.filter(escuadron=escuadron, usuario=joiner).exists()
+    assert Membresia.objects.filter(escuadron=escuadron).count() == 1
