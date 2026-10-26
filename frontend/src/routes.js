@@ -131,17 +131,6 @@ export const routes = [
       }),
   },
   {
-    path: '/mi-habito',
-    title: 'Mi hábito diario',
-    private: true,
-    view: () =>
-      screen({
-        title: 'Mi hábito diario',
-        description: 'Uno solo, tuyo. Si falla, falla la racha de todos.',
-        links: backHome,
-      }),
-  },
-  {
     path: '/escuadrones/unirse',
     title: 'Únete a un escuadrón',
     private: true,

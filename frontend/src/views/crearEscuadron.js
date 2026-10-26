@@ -110,7 +110,7 @@ export function escuadronCreadoScreen(squad) {
     copyButton,
     copyStatus,
     membersBox,
-    link('/mi-habito', 'Elegir mi hábito', `mt-5 ${primaryButtonClass}`),
+    link('/', 'Ir al panel', `mt-5 ${primaryButtonClass}`),
   )
   return main
 }
