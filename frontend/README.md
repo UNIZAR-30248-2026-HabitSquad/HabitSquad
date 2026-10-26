@@ -39,14 +39,15 @@ crear elementos y lanzar eventos.
 ## Registro y sesión
 
 `/registro` envía el correo y la contraseña a `POST /api/auth/register/`. Si el
-backend responde `201`, `src/auth/registro.js` pide `POST /api/auth/token/` y
-`src/auth/login.js` guarda la sesión en `localStorage`:
+backend responde `201`, la ruta pide `POST /api/auth/token/` y guarda la sesión
+en `localStorage` mediante el cliente de `src/api.js` y `src/session.js`:
 
 - `habitsquad.access`
 - `habitsquad.refresh`
 
-A continuación la aplicación abre `/menu` (**Menú principal**). En desarrollo,
-Vite reenvía `/api` a `http://127.0.0.1:8000`. El contrato de la API está en
+A continuación la aplicación abre `/`. La ruta `/menu` se conserva por
+compatibilidad. En desarrollo, Vite reenvía `/api` a
+`http://127.0.0.1:8000`. El contrato de la API está en
 OpenAPI y el recorrido de la sesión, en `docs/AUTENTICACION_JWT.md`.
 
 ## Pantallas y enrutador
@@ -130,6 +131,16 @@ la sesión y la aplicación vuelve a `/login`. `logout()` revoca el refresh en
 `/api/auth/logout/` y borra la sesión aunque el backend no responda.
 
 El flujo completo de tokens está en `docs/AUTENTICACION_JWT.md`.
+
+### Registro de cuenta
+
+La pantalla `/registro` envía el correo y la contraseña a
+`POST /api/auth/register/` mediante `register()` (`src/api.js`). Si el alta
+es correcta (`201`), la aplicación llama automáticamente a `login()` con las
+mismas credenciales para obtener y guardar los tokens, y redirige al inicio (`/`).
+Si el backend rechaza los datos (`400`), muestra el error en el campo
+correspondiente (correo duplicado o contraseña no válida) y avisa en caso de
+límite de peticiones (`429`).
 
 ### Recuperar la contraseña
 

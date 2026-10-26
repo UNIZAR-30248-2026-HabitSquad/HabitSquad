@@ -187,13 +187,12 @@ describe('validación local del formulario de registro', () => {
   })
 
   it('muestra el error de email que devuelve el backend', async () => {
+    const error = new Error('Ya existe una cuenta con este email.', {
+      cause: { status: 400, data: { email: ['Ya existe una cuenta con este email.'] } },
+    })
     const screen = mount(
       registroScreen({
-        onSubmit: () =>
-          Promise.resolve({
-            ok: false,
-            errors: { email: 'Ya existe una cuenta con este email.' },
-          }),
+        onSubmit: () => Promise.reject(error),
       }),
     )
     fill(screen, { email: VALID_EMAIL, password: VALID_PASSWORD })

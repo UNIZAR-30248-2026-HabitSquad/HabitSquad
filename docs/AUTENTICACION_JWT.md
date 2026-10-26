@@ -32,7 +32,8 @@ una contraseña. La aplicación comprueba el formato en el navegador y envía
 Ese alta no devuelve tokens. Si responde `201`, la propia aplicación llama a
 `POST /api/auth/token/` con el mismo correo y la misma contraseña. Guarda
 `access` en `localStorage` con la clave `habitsquad.access` y `refresh` con
-`habitsquad.refresh`, y abre la pantalla **Menú principal** (`/menu`).
+`habitsquad.refresh`, y abre la pantalla principal (`/`). La ruta `/menu` se
+conserva por compatibilidad.
 
 Si el alta responde `201` pero el token no se obtiene, la cuenta queda creada
 y no se guarda la sesión. La pantalla muestra «La cuenta se ha creado, pero no
@@ -42,7 +43,7 @@ superado el límite de cinco registros anónimos por hora.
 
 Para verlo: con el backend en el puerto 8000 y el frontend de Vite, abre
 `/registro`, crea la cuenta con un correo nuevo y comprueba que la dirección
-pasa a `/menu`. En las herramientas del navegador, la pestaña Red debe mostrar
+pasa a `/`. En las herramientas del navegador, la pestaña Red debe mostrar
 el `201` de `register/` y el `200` de `token/`. En Almacenamiento deben aparecer
 las dos claves.
 
