@@ -155,7 +155,8 @@ HTTPS, así que se prueba con la versión desplegada.
 ## Estructura
 
 - `index.html`: punto de entrada de la aplicación.
-- `src/main.js`: arranca el enrutador y vuelve a `/login` si caduca la sesión.
+- `src/main.js`: carga estilos y arranca la aplicación.
+- `src/app.js`: crea el enrutador y vuelve a `/login` si caduca la sesión.
 - `src/router.js`: enrutador con la History API.
 - `src/routes.js`: rutas, pantallas y rutas que exigen sesión.
 - `src/api.js`: inicio y cierre de sesión, renovación de tokens y `authFetch`.
