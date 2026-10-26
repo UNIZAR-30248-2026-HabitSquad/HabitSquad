@@ -138,3 +138,56 @@ def test_join_escuadron_when_already_member_returns_409(
     assert second.data["detail"] == "Ya perteneces a este escuadrón"
     assert Membresia.objects.filter(escuadron=escuadron, usuario=joiner).count() == 1
     assert Membresia.objects.filter(escuadron=escuadron).count() == 2
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("codigo_invitacion", "expected_message"),
+    [
+        ("ABC", "El código de invitación debe tener 6 caracteres."),
+        ("ABCDEFG", "El código de invitación debe tener 6 caracteres."),
+        (
+            "ABCDE!",
+            "El código de invitación solo puede contener letras A-Z y dígitos.",
+        ),
+    ],
+)
+def test_join_escuadron_rejects_invalid_code_format(
+    auth_joiner,
+    escuadron,
+    joiner,
+    codigo_invitacion,
+    expected_message,
+):
+    response = auth_joiner.post(
+        reverse(JOIN_URL),
+        {"codigo_invitacion": codigo_invitacion},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert expected_message in response.data["codigo_invitacion"]
+    assert not Membresia.objects.filter(escuadron=escuadron, usuario=joiner).exists()
+    assert Membresia.objects.filter(escuadron=escuadron).count() == 1
+
+
+@pytest.mark.django_db
+def test_join_escuadron_rejects_blank_code(auth_joiner, escuadron, joiner):
+    response = auth_joiner.post(
+        reverse(JOIN_URL),
+        {"codigo_invitacion": "   "},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "codigo_invitacion" in response.data
+    assert not Membresia.objects.filter(escuadron=escuadron, usuario=joiner).exists()
+
+
+@pytest.mark.django_db
+def test_join_escuadron_rejects_missing_code(auth_joiner, escuadron, joiner):
+    response = auth_joiner.post(reverse(JOIN_URL), {}, format="json")
+
+    assert response.status_code == 400
+    assert "codigo_invitacion" in response.data
+    assert not Membresia.objects.filter(escuadron=escuadron, usuario=joiner).exists()
