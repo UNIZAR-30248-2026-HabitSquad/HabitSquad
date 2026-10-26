@@ -36,6 +36,19 @@ Las pruebas se escriben junto al código con el sufijo `.test.js`, por ejemplo
 `src/router.test.js`. Se ejecutan en un DOM simulado con jsdom, así que pueden
 crear elementos y lanzar eventos.
 
+## Registro y sesión
+
+`/registro` envía el correo y la contraseña a `POST /api/auth/register/`. Si el
+backend responde `201`, `src/auth/registro.js` pide `POST /api/auth/token/` y
+`src/auth/login.js` guarda la sesión en `localStorage`:
+
+- `habitsquad.access`
+- `habitsquad.refresh`
+
+A continuación la aplicación abre `/menu` (**Menú principal**). En desarrollo,
+Vite reenvía `/api` a `http://127.0.0.1:8000`. El contrato de la API está en
+OpenAPI y el recorrido de la sesión, en `docs/AUTENTICACION_JWT.md`.
+
 ## Pantallas y enrutador
 
 Cada pantalla es una función que devuelve un elemento del DOM. Las rutas se

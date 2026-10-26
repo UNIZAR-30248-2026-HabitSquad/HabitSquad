@@ -1,6 +1,7 @@
 import { ApiError, login, logout, requestPasswordReset } from './api.js'
 import { hasSession } from './session.js'
 import { loginScreen, registroScreen } from './views/acceso.js'
+import { menuScreen } from './views/menu.js'
 import { recuperarContrasenaScreen } from './views/recuperarContrasena.js'
 import { screen } from './views/screen.js'
 import { unirseEscuadronScreen } from './views/unirseEscuadron.js'
@@ -104,6 +105,11 @@ export const routes = [
           }
         },
       }),
+  },
+  {
+    path: '/menu',
+    title: 'Menú principal',
+    view: () => menuScreen(),
   },
   {
     path: '/escuadrones/nuevo',

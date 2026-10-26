@@ -21,7 +21,11 @@ class UserRegistrationView(generics.CreateAPIView):
                 description="Se ha superado el límite de solicitudes."
             ),
         },
-        description="Registra una cuenta con email y contraseña.",
+        description=(
+            "Registra una cuenta con email y contraseña. "
+            "La respuesta 201 devuelve id, email y date_joined, sin tokens. "
+            "La sesión JWT se obtiene con POST /api/auth/token/."
+        ),
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
