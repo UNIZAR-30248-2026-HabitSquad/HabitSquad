@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, login, logout } from './api.js'
+import { ApiError, login, logout, register } from './api.js'
 import { guard, notFound, routes } from './routes.js'
 import { hasSession, saveSession } from './session.js'
 
@@ -8,6 +8,7 @@ vi.mock('./api.js', async (importOriginal) => {
   return {
     ...actual,
     login: vi.fn(),
+    register: vi.fn(),
     logout: vi.fn(),
     requestPasswordReset: vi.fn(),
   }
@@ -59,6 +60,7 @@ describe('sesión', () => {
   beforeEach(() => {
     localStorage.clear()
     login.mockReset()
+    register.mockReset()
     logout.mockReset()
   })
 
@@ -116,6 +118,73 @@ describe('sesión', () => {
     await vi.waitFor(() => {
       expect(element.textContent).toContain(
         'El correo o la contraseña no son correctos.',
+      )
+    })
+    expect(navigate).not.toHaveBeenCalled()
+    expect(hasSession()).toBe(false)
+  })
+
+  it('un registro correcto guarda los tokens y abre el inicio', async () => {
+    register.mockResolvedValue({ id: 1, email: 'persona@example.com' })
+    login.mockImplementation(async () => {
+      saveSession({ access: 'access-token', refresh: 'refresh-token' })
+    })
+    const { element, navigate } = mount('/registro')
+
+    fillLogin(element, {
+      email: ' Persona@Example.com ',
+      password: 'S0mething!Secure-497',
+    })
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(register).toHaveBeenCalledWith({
+        email: 'persona@example.com',
+        password: 'S0mething!Secure-497',
+      })
+      expect(login).toHaveBeenCalledWith({
+        email: 'persona@example.com',
+        password: 'S0mething!Secure-497',
+      })
+      expect(hasSession()).toBe(true)
+      expect(navigate).toHaveBeenCalledWith('/')
+    })
+  })
+
+  it('traduce el error 400 de email repetido en el registro', async () => {
+    register.mockRejectedValue(
+      new ApiError(400, { email: ['Ya existe una cuenta con este email.'] }),
+    )
+    const { element, navigate } = mount('/registro')
+
+    fillLogin(element, {
+      email: 'persona@example.com',
+      password: 'S0mething!Secure-497',
+    })
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(element.textContent).toContain(
+        'Ya existe una cuenta con este email.',
+      )
+    })
+    expect(navigate).not.toHaveBeenCalled()
+    expect(hasSession()).toBe(false)
+  })
+
+  it('traduce el error 429 del registro', async () => {
+    register.mockRejectedValue(new ApiError(429, { detail: 'throttled' }))
+    const { element, navigate } = mount('/registro')
+
+    fillLogin(element, {
+      email: 'persona@example.com',
+      password: 'S0mething!Secure-497',
+    })
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(element.textContent).toContain(
+        'Has superado el número de registros. Espera un rato y vuelve a probar.',
       )
     })
     expect(navigate).not.toHaveBeenCalled()

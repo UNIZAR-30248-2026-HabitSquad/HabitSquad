@@ -34,12 +34,27 @@ function expireSession() {
   window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
 }
 
+export async function register({ email, password }) {
+  return await postJson('/api/auth/register/', { email, password })
+}
+
 export async function login({ email, password }) {
   saveSession(await postJson('/api/auth/token/', { email, password }))
 }
 
 export async function requestPasswordReset(email) {
   await postJson('/api/auth/password-reset/', { email })
+}
+
+export async function joinSquad(codigoInvitacion) {
+  const response = await authFetch('/api/escuadrones/unirse/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ codigo_invitacion: codigoInvitacion }),
+  })
+  const data = await readJson(response)
+  if (!response.ok) throw new ApiError(response.status, data)
+  return data
 }
 
 let pendingRefresh = null

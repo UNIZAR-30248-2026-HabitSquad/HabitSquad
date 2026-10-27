@@ -191,3 +191,30 @@ def test_join_escuadron_rejects_missing_code(auth_joiner, escuadron, joiner):
     assert response.status_code == 400
     assert "codigo_invitacion" in response.data
     assert not Membresia.objects.filter(escuadron=escuadron, usuario=joiner).exists()
+
+
+@pytest.mark.django_db
+def test_join_escuadron_openapi_documents_code_validation_and_responses(api_client):
+    response = api_client.get(reverse("schema"))
+
+    assert response.status_code == 200
+    operation = response.data["paths"]["/api/escuadrones/unirse/"]["post"]
+    codigo = response.data["components"]["schemas"]["EscuadronJoin"]["properties"][
+        "codigo_invitacion"
+    ]
+
+    assert operation["operationId"] == "unirseAUnEscuadron"
+    assert operation["summary"] == "Unirse a un escuadrón"
+    assert operation["tags"] == ["Escuadrones"]
+    assert "se normalizan a mayúsculas" in operation["description"]
+    assert codigo["minLength"] == 6
+    assert codigo["maxLength"] == 6
+    assert codigo["pattern"] == "^[A-Za-z0-9]{6}$"
+    assert codigo["example"] == "X8K9QL"
+    assert set(operation["responses"]) == {"201", "400", "401", "404", "409"}
+    assert operation["responses"]["400"]["description"] == (
+        "El código debe tener 6 caracteres alfanuméricos."
+    )
+    assert operation["responses"]["409"]["description"] == (
+        "El usuario autenticado ya es miembro del escuadrón."
+    )

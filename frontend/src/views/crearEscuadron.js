@@ -42,7 +42,7 @@ export function validateSquadName(value) {
 
 export function escuadronCreadoScreen(squad) {
   const { main, content } = accessLayout({
-    accountLinks: false,
+    showAccountLinks: false,
     hideGreetingOnShortScreens: true,
     title: 'Escuadrón creado',
     description: 'Comparte el código con tus amigos o tu pareja.',
@@ -117,7 +117,7 @@ export function escuadronCreadoScreen(squad) {
 
 export function crearEscuadronScreen({ onSubmit } = {}) {
   const { main, content } = accessLayout({
-    accountLinks: false,
+    showAccountLinks: false,
     title: 'Crea tu escuadrón',
     description: 'Ponle nombre y comparte el código con tu gente.',
     bubble: '¡Vamos a por la racha!',

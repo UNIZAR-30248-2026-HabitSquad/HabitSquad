@@ -33,7 +33,7 @@ function logo() {
   return anchor
 }
 
-export function accessNavbar({ active = null, accountLinks = true } = {}) {
+export function accessNavbar({ active = null, showAccountLinks = true } = {}) {
   const wrapper = document.createElement('div')
   wrapper.className =
     'relative z-30 shrink-0 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5'
@@ -41,10 +41,6 @@ export function accessNavbar({ active = null, accountLinks = true } = {}) {
   const header = document.createElement('header')
   header.className =
     'glass mx-auto flex h-14 max-w-5xl items-center gap-2 rounded-full ps-2.5 pe-2 sm:h-16 sm:ps-3 sm:pe-2.5'
-
-  header.append(logo())
-  wrapper.append(header)
-  if (!accountLinks) return wrapper
 
   // En registro, el enlace sencillo es «Registrarme» y el botón lleva a iniciar sesión.
   const textKey = active === 'register' ? 'register' : 'login'
@@ -57,10 +53,14 @@ export function accessNavbar({ active = null, accountLinks = true } = {}) {
     active === textKey,
   )
 
-  const end = document.createElement('nav')
-  end.className = 'ms-auto flex items-center gap-1.5'
-  end.setAttribute('aria-label', 'Cuenta')
-  end.append(textLink, link(ACCOUNT_LINKS[buttonKey], chunkyButtonClass))
-  header.append(end)
+  header.append(logo())
+  if (showAccountLinks) {
+    const end = document.createElement('nav')
+    end.className = 'ms-auto flex items-center gap-1.5'
+    end.setAttribute('aria-label', 'Cuenta')
+    end.append(textLink, link(ACCOUNT_LINKS[buttonKey], chunkyButtonClass))
+    header.append(end)
+  }
+  wrapper.append(header)
   return wrapper
 }

@@ -128,6 +128,10 @@ def test_registration_is_included_in_openapi_schema(api_client):
     assert response.status_code == 200
     assert "/api/auth/register/" in response.data["paths"]
     operation = response.data["paths"]["/api/auth/register/"]["post"]
-    assert operation["description"] == "Registra una cuenta con email y contraseña."
+    assert operation["description"] == (
+        "Registra una cuenta con email y contraseña. "
+        "La respuesta 201 devuelve id, email y date_joined, sin tokens. "
+        "La sesión JWT se obtiene con POST /api/auth/token/."
+    )
     assert "content" in operation["responses"]["201"]
     assert set(operation["responses"]) == {"201", "400", "429"}
