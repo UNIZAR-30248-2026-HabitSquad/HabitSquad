@@ -3,6 +3,7 @@ import {
   ApiError,
   SESSION_EXPIRED_EVENT,
   authFetch,
+  joinSquad,
   login,
   logout,
   refreshSession,
@@ -273,5 +274,40 @@ describe('api', () => {
       refresh: 'new-refresh',
     })
     expect(resourceCalls).toBe(2)
+  })
+
+  it('joinSquad envía el código con autenticación y devuelve el escuadrón', async () => {
+    saveSession({ access: 'access-token', refresh: 'refresh-token' })
+    const escuadron = {
+      id: 1,
+      nombre: 'Madrugadores',
+      codigo_invitacion: 'X8K9QL',
+    }
+    fetchMock.mockResolvedValue(jsonResponse(201, escuadron))
+
+    await expect(joinSquad('X8K9QL')).resolves.toEqual(escuadron)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/escuadrones/unirse/',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ codigo_invitacion: 'X8K9QL' }),
+      }),
+    )
+    const [, options] = fetchMock.mock.calls[0]
+    expect(options.headers.get('Authorization')).toBe('Bearer access-token')
+  })
+
+  it('joinSquad propaga los errores devueltos por la API', async () => {
+    saveSession({ access: 'access-token', refresh: 'refresh-token' })
+    fetchMock.mockResolvedValue(
+      jsonResponse(404, { detail: 'No se ha encontrado un escuadrón con ese código' }),
+    )
+
+    await expect(joinSquad('X8K9QL')).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 404,
+      data: { detail: 'No se ha encontrado un escuadrón con ese código' },
+    })
   })
 })
