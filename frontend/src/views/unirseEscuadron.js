@@ -1,3 +1,7 @@
+import { submitButton, setSubmitPending } from '../components/forms.js'
+import { accessLayout } from '../components/layout.js'
+import { backLink } from '../components/navigation.js'
+
 const CODE_LENGTH = 6
 const INCOMPLETE_CODE_MESSAGE =
   'Introduce el código completo de 6 caracteres.'
@@ -5,13 +9,12 @@ const JOIN_FAILED_MESSAGE =
   'No se ha podido unir al escuadrón. Inténtalo de nuevo.'
 
 const boxClass = [
-  'aspect-[4/5] w-full min-w-0 rounded-[clamp(0.7rem,2cqi,1.25rem)]',
-  'border border-[#d7d3e5] bg-white p-0',
-  'text-center text-[clamp(1rem,6cqi,2.25rem)] leading-none font-bold',
-  'text-slate-950 uppercase outline-none transition',
-  'focus:border-[#5b32ea] focus:ring-2 focus:ring-[#5b32ea]/20',
-  'aria-invalid:border-2 aria-invalid:border-red-600 aria-invalid:text-red-600',
-  'aria-invalid:focus:border-red-600 aria-invalid:focus:ring-red-600/25',
+  'aspect-square w-full min-w-0 rounded-xl border-2 border-transparent',
+  'bg-[#f2f2f7] p-0 text-center text-2xl leading-none font-extrabold',
+  'text-ink uppercase outline-none transition-[border-color,box-shadow] duration-200',
+  'focus:border-accent-line focus:ring-4 focus:ring-accent/15',
+  'aria-invalid:border-red-400 aria-invalid:text-red-600',
+  'aria-invalid:focus:border-red-400 aria-invalid:focus:ring-red-500/15',
 ].join(' ')
 
 function alphanumeric(value) {
@@ -19,55 +22,28 @@ function alphanumeric(value) {
 }
 
 export function unirseEscuadronScreen({ onSubmit } = {}) {
-  const main = document.createElement('main')
-  main.className = [
-    'flex min-h-dvh w-full flex-col bg-[#f3f1ff]',
-    'ps-[env(safe-area-inset-left)] pe-[env(safe-area-inset-right)]',
-    'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]',
-  ].join(' ')
-
-  const column = document.createElement('div')
-  column.className = [
-    '@container mx-auto flex w-full max-w-2xl min-w-0 flex-col',
-    'px-[clamp(1rem,4vw,2.5rem)] pt-[clamp(1.75rem,6vh,4.5rem)]',
-    'pb-[clamp(2rem,8vh,5rem)]',
-  ].join(' ')
-
-  const header = document.createElement('header')
-  header.className = 'flex flex-col gap-[clamp(0.4rem,1.5cqi,0.85rem)]'
-
-  const title = document.createElement('h1')
-  title.className = [
-    'text-[clamp(1.35rem,7.6cqi,2.6rem)] leading-tight font-extrabold',
-    'tracking-tight text-balance text-[#5a31ea]',
-  ].join(' ')
-  title.textContent = 'Únete a un escuadrón'
-
-  const description = document.createElement('p')
-  description.className =
-    'text-[clamp(0.95rem,3.2cqi,1.25rem)] leading-snug tracking-tight text-balance text-[#544f76]'
-  description.textContent =
-    'Introduce el código de 6 caracteres que te han enviado.'
-
-  header.append(title, description)
+  const { main, content } = accessLayout({
+    title: 'Únete a un escuadrón',
+    description: 'Escribe el código de invitación de 6 caracteres.',
+    bubble: '¿Te han pasado un código?',
+    showAccountLinks: false,
+    cardClassName: 'glass w-full max-w-[27rem] rounded-[2rem] p-6 sm:p-7',
+  })
 
   const form = document.createElement('form')
-  form.className =
-    'mt-[clamp(1.5rem,5cqi,3rem)] flex flex-col gap-[clamp(0.85rem,2.5cqi,1.35rem)]'
+  form.className = 'mt-5 flex min-w-0 flex-col gap-4'
   form.noValidate = true
 
-  const label = document.createElement('label')
-  label.className = 'flex min-w-0 flex-col gap-[clamp(0.55rem,2cqi,1rem)]'
+  const label = document.createElement('div')
+  label.className = 'flex min-w-0 flex-col gap-2'
 
   const caption = document.createElement('span')
   caption.id = 'codigo-invitacion-label'
-  caption.className =
-    'text-[clamp(0.8rem,2.8cqi,1rem)] font-bold text-[#211a45]'
+  caption.className = 'text-[0.875rem] font-extrabold text-ink'
   caption.textContent = 'Código de invitación'
 
   const boxes = document.createElement('div')
-  boxes.className =
-    'grid w-full min-w-0 grid-cols-6 gap-[clamp(0.4rem,3.4cqi,1.35rem)]'
+  boxes.className = 'grid w-full min-w-0 grid-cols-6 gap-2'
   boxes.setAttribute('role', 'group')
   boxes.setAttribute('aria-labelledby', caption.id)
 
@@ -81,6 +57,7 @@ export function unirseEscuadronScreen({ onSubmit } = {}) {
     input.spellcheck = false
     input.setAttribute('autocapitalize', 'characters')
     input.setAttribute('aria-label', `Carácter ${index + 1} del código`)
+    input.id = `codigo-invitacion-${index + 1}`
     input.setAttribute('aria-invalid', 'false')
     input.className = boxClass
     input.addEventListener('focus', () => input.select())
@@ -93,13 +70,13 @@ export function unirseEscuadronScreen({ onSubmit } = {}) {
   const errorMessage = document.createElement('p')
   errorMessage.id = 'codigo-invitacion-error'
   errorMessage.className =
-    'hidden text-[clamp(0.8rem,2.8cqi,1rem)] leading-snug font-medium text-pretty text-red-600'
+    'hidden rounded-2xl border-2 border-red-200 bg-red-50 px-4 py-3 text-[0.875rem] leading-snug font-bold text-pretty text-red-700'
   errorMessage.setAttribute('role', 'alert')
   errorMessage.setAttribute('aria-live', 'polite')
 
   const successMessage = document.createElement('p')
   successMessage.className =
-    'hidden text-[clamp(0.8rem,2.8cqi,1rem)] leading-snug font-medium text-green-700'
+    'hidden rounded-2xl border-2 border-green-200 bg-green-50 px-4 py-3 text-[0.875rem] leading-snug font-bold text-green-800'
   successMessage.setAttribute('role', 'status')
   successMessage.setAttribute('aria-live', 'polite')
 
@@ -189,19 +166,9 @@ export function unirseEscuadronScreen({ onSubmit } = {}) {
     })
   }
 
-  const submitButton = document.createElement('button')
-  submitButton.type = 'submit'
-  submitButton.className = [
-    'mt-[clamp(0.15rem,1cqi,0.5rem)] flex h-[clamp(3.75rem,13.5cqi,4.75rem)]',
-    'w-full cursor-pointer items-center justify-center px-4',
-    'rounded-[clamp(0.9rem,2.5cqi,1.35rem)] bg-[#ff6a13]',
-    'text-[clamp(0.95rem,3.2cqi,1.2rem)] font-bold text-white',
-    'transition-colors hover:bg-[#e85e0c] active:bg-[#d2540a]',
-    'disabled:cursor-wait disabled:opacity-70',
-  ].join(' ')
-  submitButton.textContent = 'Unirme al escuadrón'
+  const submit = submitButton('Unirme al escuadrón')
 
-  form.append(label, errorMessage, successMessage, submitButton)
+  form.append(label, errorMessage, successMessage, submit)
 
   form.addEventListener('submit', (event) => {
     event.preventDefault()
@@ -219,14 +186,14 @@ export function unirseEscuadronScreen({ onSubmit } = {}) {
     const result = onSubmit(code, { showError, clearError })
     if (!result || typeof result.then !== 'function') return
 
-    submitButton.disabled = true
+    setSubmitPending(submit, true, 'Uniéndote…')
     result.then(
       (squad) => {
-        submitButton.disabled = false
+        setSubmitPending(submit, false, 'Uniéndote…')
         showSuccess(squad)
       },
       (error) => {
-        submitButton.disabled = false
+        setSubmitPending(submit, false, 'Uniéndote…')
         const message =
           error instanceof Error && error.message
             ? error.message
@@ -236,28 +203,12 @@ export function unirseEscuadronScreen({ onSubmit } = {}) {
     )
   })
 
-  const alternative = document.createElement('div')
-  alternative.className =
-    'mt-[clamp(2rem,6cqi,4rem)] flex flex-col gap-[clamp(0.85rem,2.5cqi,1.35rem)]'
-
-  const prompt = document.createElement('p')
-  prompt.className =
-    'text-center text-[clamp(0.8rem,2.8cqi,1rem)] text-pretty text-[#534e70]'
-  prompt.textContent = '¿Prefieres empezar uno nuevo?'
-
-  const createLink = document.createElement('a')
-  createLink.href = '/escuadrones/nuevo'
-  createLink.dataset.link = ''
-  createLink.className = [
-    'flex h-[clamp(3.75rem,13.5cqi,4.75rem)] w-full items-center justify-center px-4',
-    'rounded-[clamp(0.9rem,2.5cqi,1.35rem)] border-2 border-[#5b32ea] bg-white',
-    'text-[clamp(0.95rem,3.2cqi,1.2rem)] font-bold text-[#5b32ea]',
-    'transition-colors hover:bg-[#efeaff]',
-  ].join(' ')
-  createLink.textContent = 'Crear un escuadrón'
-
-  alternative.append(prompt, createLink)
-  column.append(header, form, alternative)
-  main.append(column)
+  content.append(
+    form,
+    backLink({
+      href: '/escuadrones/nuevo',
+      label: '¿No tienes código? Crea tu escuadrón',
+    }),
+  )
   return main
 }

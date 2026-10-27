@@ -62,7 +62,7 @@ function expectClearFeedback(element) {
 function expectErrorFeedback(element, message) {
   const alert = alertOf(element)
   expect(alert.classList.contains('hidden')).toBe(false)
-  expect(alert.classList.contains('text-red-600')).toBe(true)
+  expect(alert.classList.contains('text-red-700')).toBe(true)
   expect(alert.textContent).toBe(message)
   expect(element.querySelector('[role="group"]').getAttribute('aria-describedby')).toBe(
     alert.id,
@@ -70,7 +70,7 @@ function expectErrorFeedback(element, message) {
   for (const input of inputsOf(element)) {
     expect(input.getAttribute('aria-invalid')).toBe('true')
     expect(input.getAttribute('aria-describedby')).toBe(alert.id)
-    expect(input.className).toContain('aria-invalid:border-red-600')
+    expect(input.className).toContain('aria-invalid:border-red-400')
     expect(input.className).toContain('aria-invalid:text-red-600')
   }
 }
@@ -153,8 +153,21 @@ describe('feedback visual del código', () => {
     const alert = alertOf(element)
     expect(alert.getAttribute('role')).toBe('alert')
     expect(alert.getAttribute('aria-live')).toBe('polite')
-    expect(alert.classList.contains('text-red-600')).toBe(true)
+    expect(alert.classList.contains('text-red-700')).toBe(true)
     expectClearFeedback(element)
+  })
+
+  it('usa el fondo, la tarjeta y el bocadillo del diseño de acceso', () => {
+    expect(element.className).toContain('font-rounded')
+    expect(element.querySelector('.access-backdrop')).not.toBeNull()
+    expect(element.querySelector('section.glass')).not.toBeNull()
+    expect(element.querySelector('.speech-bubble').textContent).toBe(
+      '¿Te han pasado un código?',
+    )
+    expect(element.querySelector('h1').textContent).toBe('Únete a un escuadrón')
+    expect(element.querySelectorAll('input')).toHaveLength(6)
+    expect(element.querySelector('input').className).toContain('bg-[#f2f2f7]')
+    expect(element.querySelector('input').className).toContain('rounded-xl')
   })
 
   it('marca en rojo las casillas y el aviso si el código está incompleto', () => {
@@ -215,7 +228,7 @@ describe('feedback visual del código', () => {
 
     const button = screen.querySelector('button')
     expect(button.disabled).toBe(true)
-    expect(button.className).toContain('disabled:opacity-70')
+    expect(button.className).toContain('disabled:opacity-60')
     expect(button.className).toContain('disabled:cursor-wait')
     expectClearFeedback(screen)
 
@@ -288,8 +301,8 @@ describe('feedback visual del código', () => {
 describe('alternativa a unirse', () => {
   it('enlaza con crear un escuadrón', () => {
     const element = unirseEscuadronScreen()
-    const link = element.querySelector('a[data-link]')
+    const link = element.querySelector('a[href="/escuadrones/nuevo"]')
     expect(link.getAttribute('href')).toBe('/escuadrones/nuevo')
-    expect(link.textContent).toBe('Crear un escuadrón')
+    expect(link.textContent).toBe('¿No tienes código? Crea tu escuadrón')
   })
 })

@@ -77,7 +77,14 @@ function mascot() {
   return image
 }
 
-export function accessLayout({ active = null, title, description, bubble }) {
+export function accessLayout({
+  active = null,
+  title,
+  description,
+  bubble,
+  showAccountLinks = true,
+  cardClassName = 'glass w-full max-w-[25rem] rounded-[2rem] p-6 sm:p-7',
+}) {
   const main = element(
     'main',
     [
@@ -100,7 +107,7 @@ export function accessLayout({ active = null, title, description, bubble }) {
     ),
   )
 
-  const card = element('section', 'glass w-full max-w-[25rem] rounded-[2rem] p-6 sm:p-7')
+  const card = element('section', cardClassName)
   const content = element('div', 'mt-1 flex min-w-0 flex-col')
   card.append(
     element(
@@ -122,6 +129,6 @@ export function accessLayout({ active = null, title, description, bubble }) {
   )
   body.append(squadBadges(), greeting, card)
 
-  main.append(backdrop, accessNavbar({ active }), body)
+  main.append(backdrop, accessNavbar({ active, showAccountLinks }), body)
   return { main, content }
 }

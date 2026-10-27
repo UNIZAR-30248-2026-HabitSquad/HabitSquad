@@ -33,7 +33,7 @@ function logo() {
   return anchor
 }
 
-export function accessNavbar({ active = null } = {}) {
+export function accessNavbar({ active = null, showAccountLinks = true } = {}) {
   const wrapper = document.createElement('div')
   wrapper.className =
     'relative z-30 shrink-0 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5'
@@ -53,12 +53,14 @@ export function accessNavbar({ active = null } = {}) {
     active === textKey,
   )
 
-  const end = document.createElement('nav')
-  end.className = 'ms-auto flex items-center gap-1.5'
-  end.setAttribute('aria-label', 'Cuenta')
-  end.append(textLink, link(ACCOUNT_LINKS[buttonKey], chunkyButtonClass))
-
-  header.append(logo(), end)
+  header.append(logo())
+  if (showAccountLinks) {
+    const end = document.createElement('nav')
+    end.className = 'ms-auto flex items-center gap-1.5'
+    end.setAttribute('aria-label', 'Cuenta')
+    end.append(textLink, link(ACCOUNT_LINKS[buttonKey], chunkyButtonClass))
+    header.append(end)
+  }
   wrapper.append(header)
   return wrapper
 }

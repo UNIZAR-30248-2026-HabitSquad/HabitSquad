@@ -1,14 +1,11 @@
-<<<<<<< HEAD
 import {
   ApiError,
   joinSquad,
   login,
   logout,
+  register,
   requestPasswordReset,
 } from './api.js'
-=======
-import { ApiError, login, logout, register, requestPasswordReset } from './api.js'
->>>>>>> origin/main
 import { hasSession } from './session.js'
 import { loginScreen, registroScreen } from './views/acceso.js'
 import { menuScreen } from './views/menu.js'
