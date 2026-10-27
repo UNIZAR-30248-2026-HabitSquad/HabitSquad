@@ -44,8 +44,9 @@ disponible en `http://127.0.0.1:8000/api/docs/` y el esquema OpenAPI en
 `http://127.0.0.1:8000/api/schema/`.
 
 El endpoint `POST /api/auth/register/` recibe `email` y `password`, y devuelve
-`id`, `email` y `date_joined`. El endpoint limita las solicitudes anónimas a
-cinco por hora y dirección IP.
+`id`, `email` y `date_joined`. No devuelve tokens. La aplicación web, tras un
+`201`, pide la sesión en `POST /api/auth/token/` con las mismas credenciales.
+El endpoint limita las solicitudes anónimas a cinco por hora y dirección IP.
 
 El endpoint `POST /api/auth/token/` recibe `email` y `password` y devuelve
 `access` y `refresh`. El token de acceso dura cinco minutos y el de renovación,
