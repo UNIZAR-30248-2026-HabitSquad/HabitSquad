@@ -1,58 +1,77 @@
-------------------------------------------------------------------
-Resumen
-Implementa la pantalla «Únete a un escuadrón»: casillas para un código de invitación de 6 caracteres, avisos de error y adaptación al ancho de la pantalla.
+## Resumen
 
-Cambios incluidos
-Sustituye el marcador de /escuadrones/unirse por la pantalla unirseEscuadronScreen.
-Añade seis casillas de un carácter:
-Pasa el texto a mayúsculas y solo acepta letras y números.
-Avanza el foco al escribir y, con retroceso en una casilla vacía, borra la anterior.
-Reparte un código pegado entre las casillas.
-Muestra el aviso «Introduce el código completo de 6 caracteres.» si se envía un código incompleto.
-Marca las casillas como no válidas y las asocia al aviso.
-Retira el aviso y el marcado en cuanto se corrige o se pega un código.
-Permite publicar un aviso desde quien procesa el código, por ejemplo si el código no existe.
-Si esa operación devuelve una promesa, desactiva el botón hasta que termina.
-Si falla, muestra el mensaje del error o, si no hay mensaje, «No se ha podido unir al escuadrón. Inténtalo de nuevo.», y reactiva el botón.
-Enlaza «Crear un escuadrón» con /escuadrones/nuevo.
-Mantiene la columna centrada y legible desde 320 px hasta escritorio.
-Añade pruebas Vitest de la introducción del código y del feedback visual.
+Conecta la pantalla de registro (`/registro`) con el endpoint del backend `POST /api/auth/register/` (PBI #1, tarea T05). Gestiona la validación y errores devueltos por el servidor (correo repetido, contraseña rechazada, límite de peticiones), inicia sesión automáticamente mediante JWT (`POST /api/auth/token/`), persiste los tokens en `localStorage` y redirige al usuario a la pantalla principal.
 
-Contrato principal
-Ruta: /escuadrones/unirse.
-Código válido para enviar: 6 caracteres, letras o números, en mayúsculas.
-Código incompleto: aviso visible y casillas marcadas; no se entrega el código.
-Código completo: se entrega el valor a onSubmit, si existe.
-Fallo al unirse: aviso con el mensaje del error.
-Unión en curso: el botón queda desactivado.
-La pantalla no llama todavía a ninguna API. Un código completo no hace nada si no se pasa onSubmit.
+## Cambios incluidos
 
-Validación
-Comprobaciones de este cambio:
- Frontend: npm test — 34 pruebas, 3 ficheros, todas pasan.
- Frontend: npm run build — el build de Vite termina correctamente.
- Ruff, python manage.py check, makemigrations --check, spectacular --validate y pytest no forman parte de este cambio: no hay código Python ni endpoint nuevo. El workflow de CI los sigue ejecutando en el pull request.
+- Conecta el formulario de registro (`/registro`) mediante el cliente `register` en [`src/api.js`](file:///c:/Users/juano/HabitSquad/frontend/src/api.js).
+- Gestión de estado del botón «Crear cuenta»: se desactiva con estado de espera durante la llamada para impedir envíos múltiples.
+- Integración y presentación de errores devueltos por la API:
+  - Error 400 por correo ya registrado: muestra «Ya existe una cuenta con este email.» asociado al campo de correo, lo marca como no válido y traslada el foco al input.
+  - Error 400 por contraseña rechazada: asocia el mensaje de error devuelto por los validadores de Django al campo de contraseña y le otorga el foco.
+  - Error 429 por límite de solicitudes: muestra el aviso «Has superado el número de registros. Espera un rato y vuelve a probar.».
+  - Errores de red o inesperados: muestra el aviso «No se ha podido crear la cuenta. Comprueba tu conexión e inténtalo de nuevo.».
+- Flujo de sesión completo tras registro exitoso (201 Created):
+  - Solicita el par de tokens a `POST /api/auth/token/` mediante `login`.
+  - Guarda `habitsquad.access` y `habitsquad.refresh` en `localStorage` mediante `session.js`.
+  - Redirección automática sin recarga a la pantalla principal (`/`).
+- Mantiene la compatibilidad de navegación con la ruta `/menu`.
+- Documenta el flujo en `README.md`, `backend/README.md`, `frontend/README.md`, `docs/AUTENTICACION_JWT.md` y en las descripciones de OpenAPI.
+- Añade pruebas unitarias con Vitest para el cliente de registro (`src/api.test.js`), integración en rutas (`src/routes.test.js`) y feedback visual en la vista (`src/views/registro.test.js`).
 
-Condiciones de aceptación:
+## Contrato principal
 
-Aceptación. No se puede cumplir desde este cambio. Que la PBI cumpla sus condiciones de satisfacción y que el dueño del producto la acepte es una decisión suya, posterior a la revisión. El autor no puede darla por hecha.
+- Ruta: `/registro`.
+- Endpoint de alta: `POST /api/auth/register/` con `{ email, password }`.
+- Registro exitoso (201): desencadena petición a `POST /api/auth/token/` con las mismas credenciales.
+- Inicio de sesión correcto (200): almacena `habitsquad.access` y `habitsquad.refresh` en `localStorage` y redirige a la pantalla principal (`/`).
+- Correo ya existente (400 con `email`): mensaje específico en el campo de correo, marcado como no válido.
+- Contraseña rechazada por Django (400 con `password`): mensaje específico en el campo de contraseña, marcado como no válido.
+- Límite superado (429): aviso general de límite alcanzado.
+- Fallo de conexión o 500: aviso general de reintento sin perder los datos del formulario.
 
-Código y revisión (peer review). Se puede cumplir solo en parte, y la revisión todavía no. El código nuevo es JavaScript y sigue el estilo del frontend (funciones que devuelven DOM, Tailwind y pruebas junto al código). PEP 8 y ruff no se aplican a estos ficheros; no hay Python modificado. La aprobación de al menos otro integrante no se puede cumplir hasta que el pull request exista y esa persona lo apruebe.
+## Validación
 
-Pruebas automatizadas y cobertura. Se puede cumplir en GitHub Actions y ya está cumplida en local la parte de frontend. Vitest cubre la introducción del código de 6 caracteres y el feedback visual; npm test pasa (34 pruebas). El workflow .github/workflows/ci.yml ejecuta npm test y npm run build en cada pull request, así que esa parte se confirma al abrirlo. No hay pruebas pytest nuevas porque no hay funcionalidad de backend. No se puede afirmar todavía que Actions haya pasado: el pull request no está abierto.
+Comprobaciones ejecutadas para este cambio:
 
-Documentación. No se puede cumplir tal como está redactada la condición, y en este cambio no corresponde actualizar la API. No hay endpoint nuevo, así que OpenAPI, Swagger y /api/schema/ no cambian. Tampoco se ha modificado el README ni una guía de usuario. La pantalla queda descrita en este fichero.
+- Frontend: `npm test` — 98 pruebas en 9 ficheros, todas pasan.
+- Frontend: `npm run build` — el build de Vite compila sin errores, generando el manifiesto PWA y service worker.
+- Backend: `pytest` — 42 pruebas pasan (cobertura completa de modelos, autenticación, registro y límites).
+- Backend comprobaciones: `python manage.py check`, `python manage.py makemigrations --check`, `ruff check backend` y `python manage.py spectacular --validate` pasan al 100% sin advertencias ni modificaciones pendientes.
 
-Cumplimiento de GUI y usabilidad. Se cumple el diseño mobile-first en el navegador de desarrollo. La pantalla sigue el diseño acordado y se comprobó a 320 px, a 390 px y en escritorio: el código se escribe, el aviso aparece y desaparece, y «Crear un escuadrón» navega sin recargar. No se puede cumplir la prueba en un móvil real con la PWA instalada: hace falta la versión servida por HTTPS en un dispositivo físico.
+## Aceptación
 
-Despliegue e integración. No se puede cumplir todavía. El cambio no está en main. GitHub Actions solo ejecuta la integración continua (comprobaciones, pruebas y build); no despliega. La publicación en la máquina virtual de Azure es manual, según docs/DESPLIEGUE.md, y solo tiene sentido después de integrar en main. No se puede afirmar que producción esté actualizada ni que no haya regresiones allí.
+No se puede cumplir desde este cambio. Que la PBI cumpla sus condiciones de satisfacción y que el Product Owner la acepte formalmente es una decisión posterior a la revisión del sprint. El autor no puede darla por hecha.
 
-Documentación y prueba manual
-Pantalla: /escuadrones/unirse, con el servidor de frontend en marcha (npm run dev).
-Prueba manual hecha en el navegador: código X8K9QL, aviso de código incompleto y enlace a crear un escuadrón.
-No hay página de Swagger ni esquema OpenAPI asociados a esta pantalla.
+## Código y revisión (peer review)
 
-Notas
-Un código de 6 caracteres correcto no une a ningún escuadrón hasta que exista la llamada a la API.
-La aceptación del dueño del producto, la revisión de otro integrante, la prueba en un móvil real con la PWA y el despliegue en Azure quedan fuera de lo que este cambio puede cerrar.
---------------------------------------------------------------------
+Cumplido por parte del autor. El código nuevo sigue los estándares del proyecto (JavaScript modular con funciones que devuelven DOM, clases utilitarias de Tailwind, persistencia en `session.js` y pruebas unitarias con Vitest junto al código). En backend únicamente se actualizan docstrings y descripciones de OpenAPI. La revisión requiere la aprobación de al menos otro integrante del equipo en GitHub.
+
+## Pruebas automatizadas y cobertura
+
+Se cumple en local y se validará en GitHub Actions. Vitest cubre la llamada a `POST /api/auth/register/`, la obtención de tokens en `POST /api/auth/token/`, la gestión de errores (400, 429, red) y el feedback visual en la vista. `pytest` en backend cubre el endpoint de registro, persistencia en base de datos y esquema OpenAPI. El workflow `.github/workflows/ci.yml` ejecutará la suite completa al abrir el pull request.
+
+## Documentación
+
+Cumplido. Se ha actualizado la sección «Registro de cuenta» en `README.md`, el resumen en `backend/README.md`, `frontend/README.md`, la guía `docs/AUTENTICACION_JWT.md` y el esquema OpenAPI/Swagger (`/api/docs/` y `/api/schema/`), explicitando que `/api/auth/register/` no emite tokens y que el frontend solicita la sesión en `/api/auth/token/`.
+
+## Cumplimiento de GUI y usabilidad
+
+Cumplido en navegador de desarrollo. La pantalla mantiene el diseño mobile-first Duolingo con cristal y mascota acordado, se comprobó tanto en resoluciones móviles estrechas (320 px y 375 px) como en escritorio. El foco se sitúa en los campos con error, el botón se deshabilita durante la petición evitando clics repetidos y la redirección a `/` no provoca recarga completa de página. La prueba en dispositivo móvil real con PWA instalada requiere el despliegue previo con HTTPS.
+
+## Despliegue e integración
+
+No se puede cumplir todavía. Este cambio está en una rama de características (`feature/acceso-login-registro`). El despliegue continuo en la máquina virtual de Azure se ejecutará automáticamente tras fusionar en `main`.
+
+## Documentación y prueba manual
+
+1. Iniciar backend: `python manage.py runserver` en `http://127.0.0.1:8000`.
+2. Iniciar frontend: `npm run dev` en `frontend/` y abrir `http://localhost:5173/registro`.
+3. Probar registro exitoso: introducir correo no registrado y contraseña válida. Pulsar «Crear cuenta». Verificar redirección a `/` y presencia de tokens `habitsquad.access` y `habitsquad.refresh` en `localStorage`.
+4. Probar correo duplicado: volver a `/registro` e introducir el mismo correo. Comprobar que aparece el error «Ya existe una cuenta con este email.» sobre el campo de correo con borde rojo.
+5. OpenAPI: consultar `http://127.0.0.1:8000/api/docs/` y revisar la descripción de `POST /api/auth/register/`.
+
+## Notas
+
+El endpoint `POST /api/auth/register/` devuelve 201 Created con datos públicos del usuario (`id`, `email`, `date_joined`) sin tokens; por diseño la sesión se establece encadenando la llamada a `POST /api/auth/token/`.
+La aprobación de la PBI por el Product Owner, la revisión por pares y el despliegue final en producción quedan fuera del alcance que este cambio puede cerrar de forma aislada.

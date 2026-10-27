@@ -107,6 +107,23 @@ function accesoScreen({ mode, onSubmit, notice: noticeMessage } = {}) {
     try {
       await onSubmit({ email: result.email, password: result.password })
     } catch (error) {
+      const fieldErrors = error?.cause?.data
+      if (fieldErrors && typeof fieldErrors === 'object') {
+        const emailErr = Array.isArray(fieldErrors.email)
+          ? fieldErrors.email[0]
+          : fieldErrors.email
+        const passErr = Array.isArray(fieldErrors.password)
+          ? fieldErrors.password[0]
+          : fieldErrors.password
+        if (emailErr) setFieldError(email.input, email.error, String(emailErr).trim())
+        if (passErr) setFieldError(password.input, password.error, String(passErr).trim())
+        if (emailErr) {
+          email.input.focus()
+        } else if (passErr) {
+          password.input.focus()
+          password.input.select?.()
+        }
+      }
       showFormAlert(alert, error.message, submit)
       if (isLogin) {
         password.input.focus()

@@ -18,7 +18,11 @@ from .serializers import LoginRequestSerializer, TokenPairResponseSerializer
                 description="Se ha superado el límite de intentos de inicio de sesión."
             ),
         },
-        description="Autentica con email y contraseña y devuelve un par de tokens.",
+        description=(
+            "Autentica con email y contraseña y devuelve access y refresh. "
+            "Después de registrarse, el cliente llama a este endpoint "
+            "con las mismas credenciales para establecer la sesión."
+        ),
     )
 )
 class LoginView(TokenObtainPairView):

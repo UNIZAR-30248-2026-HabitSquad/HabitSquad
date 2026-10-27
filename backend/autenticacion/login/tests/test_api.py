@@ -133,7 +133,9 @@ def test_login_is_documented_in_openapi_schema(api_client):
     assert response.status_code == 200
     operation = response.data["paths"]["/api/auth/token/"]["post"]
     assert operation["description"] == (
-        "Autentica con email y contraseña y devuelve un par de tokens."
+        "Autentica con email y contraseña y devuelve access y refresh. "
+        "Después de registrarse, el cliente llama a este endpoint "
+        "con las mismas credenciales para establecer la sesión."
     )
     assert set(operation["responses"]) == {"200", "401", "429"}
     schema = response.data

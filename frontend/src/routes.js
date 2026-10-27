@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
   ApiError,
   joinSquad,
@@ -5,8 +6,12 @@ import {
   logout,
   requestPasswordReset,
 } from './api.js'
+=======
+import { ApiError, login, logout, register, requestPasswordReset } from './api.js'
+>>>>>>> origin/main
 import { hasSession } from './session.js'
 import { loginScreen, registroScreen } from './views/acceso.js'
+import { menuScreen } from './views/menu.js'
 import { recuperarContrasenaScreen } from './views/recuperarContrasena.js'
 import { screen } from './views/screen.js'
 import { unirseEscuadronScreen } from './views/unirseEscuadron.js'
@@ -21,6 +26,27 @@ function loginErrorMessage(error) {
     return 'Has hecho demasiados intentos. Espera un rato y vuelve a probar.'
   }
   return 'No se ha podido iniciar sesión. Comprueba tu conexión e inténtalo de nuevo.'
+}
+
+function firstMessage(value) {
+  if (Array.isArray(value)) return String(value[0] ?? '').trim()
+  if (typeof value === 'string') return value.trim()
+  return ''
+}
+
+function registerErrorMessage(error) {
+  if (error instanceof ApiError && error.status === 400) {
+    const emailError = firstMessage(error.data?.email)
+    if (emailError) return emailError
+    const passwordError = firstMessage(error.data?.password)
+    if (passwordError) return passwordError
+    const detail = firstMessage(error.data?.detail)
+    if (detail) return detail
+  }
+  if (error instanceof ApiError && error.status === 429) {
+    return 'Has superado el número de registros. Espera un rato y vuelve a probar.'
+  }
+  return 'No se ha podido crear la cuenta. Comprueba tu conexión e inténtalo de nuevo.'
 }
 
 function passwordResetErrorMessage(error) {
@@ -119,7 +145,18 @@ export const routes = [
     path: '/registro',
     title: 'Registrarme',
     guestOnly: true,
-    view: () => registroScreen(),
+    view: ({ navigate } = {}) =>
+      registroScreen({
+        onSubmit: async (credentials) => {
+          try {
+            await register(credentials)
+            await login(credentials)
+          } catch (error) {
+            throw new Error(registerErrorMessage(error), { cause: error })
+          }
+          navigate('/')
+        },
+      }),
   },
   {
     path: '/recuperar-contrasena',
@@ -135,6 +172,11 @@ export const routes = [
           }
         },
       }),
+  },
+  {
+    path: '/menu',
+    title: 'Menú principal',
+    view: () => menuScreen(),
   },
   {
     path: '/escuadrones/nuevo',

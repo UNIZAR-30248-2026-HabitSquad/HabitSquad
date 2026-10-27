@@ -7,6 +7,7 @@ import {
   login,
   logout,
   refreshSession,
+  register,
 } from './api.js'
 import { getSession, hasSession, saveSession } from './session.js'
 
@@ -40,6 +41,46 @@ describe('api', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     localStorage.clear()
+  })
+
+  it('un registro correcto llama a POST /api/auth/register/ y devuelve el usuario', async () => {
+    const userData = { id: 7, email: 'persona@example.com', date_joined: '2026-10-17T12:00:00Z' }
+    fetchMock.mockResolvedValue(jsonResponse(201, userData))
+
+    const result = await register({ email: 'persona@example.com', password: 'S0mething!Secure-497' })
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/auth/register/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'persona@example.com',
+        password: 'S0mething!Secure-497',
+      }),
+    })
+    expect(result).toEqual(userData)
+  })
+
+  it('un registro con 400 lanza ApiError con los datos de error', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(400, { email: ['Ya existe una cuenta con este email.'] }),
+    )
+
+    const error = await register({
+      email: 'persona@example.com',
+      password: 'S0mething!Secure-497',
+    }).catch((caught) => caught)
+
+    expect(error).toBeInstanceOf(ApiError)
+    expect(error.status).toBe(400)
+    expect(error.data).toEqual({ email: ['Ya existe una cuenta con este email.'] })
+  })
+
+  it('un registro con 429 lanza ApiError', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(429, { detail: 'throttled' }))
+
+    await expect(
+      register({ email: 'persona@example.com', password: 'S0mething!Secure-497' }),
+    ).rejects.toMatchObject({ name: 'ApiError', status: 429 })
   })
 
   it('un login correcto guarda los tokens', async () => {
