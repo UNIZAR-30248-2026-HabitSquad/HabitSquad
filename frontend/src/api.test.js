@@ -3,6 +3,7 @@ import {
   ApiError,
   SESSION_EXPIRED_EVENT,
   authFetch,
+  createSquad,
   joinSquad,
   login,
   logout,
@@ -274,6 +275,30 @@ describe('api', () => {
       refresh: 'new-refresh',
     })
     expect(resourceCalls).toBe(2)
+  })
+
+  it('createSquad envía el nombre con autenticación y devuelve el escuadrón (201)', async () => {
+    saveSession({ access: 'access-token', refresh: 'refresh-token' })
+    const escuadron = {
+      id: 1,
+      nombre: 'Gym Bros',
+      codigo_invitacion: 'X8K9QL',
+      creador_id: 7,
+      miembros: [{ usuario_id: 7, es_administrador: true }],
+    }
+    fetchMock.mockResolvedValue(jsonResponse(201, escuadron))
+
+    await expect(createSquad('Gym Bros')).resolves.toEqual(escuadron)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/escuadrones/',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ nombre: 'Gym Bros' }),
+      }),
+    )
+    const [, options] = fetchMock.mock.calls[0]
+    expect(options.headers.get('Authorization')).toBe('Bearer access-token')
   })
 
   it('joinSquad envía el código con autenticación y devuelve el escuadrón', async () => {

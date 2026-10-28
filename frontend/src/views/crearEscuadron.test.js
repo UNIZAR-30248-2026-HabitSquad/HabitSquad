@@ -93,8 +93,38 @@ describe('crearEscuadronScreen', () => {
     expect(onSubmit).toHaveBeenCalledWith('Gym Bros')
   })
 
+  it('tras crearlo muestra el código de invitación y los miembros', async () => {
+    const squad = {
+      id: 1,
+      nombre: 'Gym Bros',
+      codigo_invitacion: 'X8K9QL',
+      creador_id: 7,
+      miembros: [{ usuario_id: 7, es_administrador: true }],
+    }
+    const onSubmit = vi.fn().mockResolvedValue(squad)
+    const element = mount(crearEscuadronScreen({ onSubmit }))
+    fill(element, 'Gym Bros')
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith('Gym Bros')
+      expect(document.body.querySelector('form')).toBeNull()
+      expect(document.body.querySelector('h1').textContent).toBe('Escuadrón creado')
+      expect(document.title).toBe('Escuadrón creado · HabitSquad')
+      expect(document.body.textContent).toContain('X8K9QL')
+      expect(document.body.textContent).toContain('Gym Bros')
+      expect(document.body.textContent).toContain('Miembros (1)')
+      expect(document.body.textContent).toContain('Tú')
+      expect(document.body.textContent).toContain('Administrador')
+      const panelLink = [...document.body.querySelectorAll('a[data-link]')].find(
+        (link) => link.textContent === 'Ir al panel',
+      )
+      expect(panelLink.getAttribute('href')).toBe('/')
+    })
+    expect(element.isConnected).toBe(false)
+  })
+
   // T17: pruebas pendientes
   it.todo('muestra el error del servidor y reactiva el botón')
-  it.todo('tras crearlo muestra el código de invitación y los miembros')
   it.todo('copia el código al portapapeles')
 })
