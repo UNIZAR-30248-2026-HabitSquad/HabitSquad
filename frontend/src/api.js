@@ -104,6 +104,16 @@ export async function authFetch(path, options = {}) {
   return fetch(path, withAccess(options, renewed.access))
 }
 
+export async function createSquad(nombre) {
+  const response = await authFetch('/api/escuadrones/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre }),
+  })
+  if (!response.ok) throw new ApiError(response.status, await readJson(response))
+  return readJson(response)
+}
+
 export async function logout() {
   const session = getSession()
   clearSession()

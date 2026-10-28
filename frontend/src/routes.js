@@ -1,5 +1,6 @@
 import {
   ApiError,
+  createSquad,
   joinSquad,
   login,
   logout,
@@ -8,6 +9,7 @@ import {
 } from './api.js'
 import { hasSession } from './session.js'
 import { loginScreen, registroScreen } from './views/acceso.js'
+import { crearEscuadronScreen } from './views/crearEscuadron.js'
 import { menuScreen } from './views/menu.js'
 import { recuperarContrasenaScreen } from './views/recuperarContrasena.js'
 import { screen } from './views/screen.js'
@@ -54,6 +56,15 @@ function passwordResetErrorMessage(error) {
     return 'Has hecho demasiados intentos. Espera un rato y vuelve a probar.'
   }
   return 'No se ha podido enviar el enlace. Comprueba tu conexión e inténtalo de nuevo.'
+}
+
+function createSquadErrorMessage(error) {
+  const nameError = error instanceof ApiError ? error.data?.nombre?.[0] : null
+  if (nameError) return nameError
+  if (error instanceof ApiError && error.status === 401) {
+    return 'Tu sesión ha caducado. Vuelve a iniciar sesión.'
+  }
+  return 'No se ha podido crear el escuadrón. Comprueba tu conexión e inténtalo de nuevo.'
 }
 
 function joinSquadErrorMessage(error) {
@@ -180,10 +191,14 @@ export const routes = [
     title: 'Crea tu escuadrón',
     private: true,
     view: () =>
-      screen({
-        title: 'Crea tu escuadrón',
-        description: 'Ponle nombre y comparte el código con tu gente.',
-        links: backHome,
+      crearEscuadronScreen({
+        onSubmit: async (nombre) => {
+          try {
+            return await createSquad(nombre)
+          } catch (error) {
+            throw new Error(createSquadErrorMessage(error), { cause: error })
+          }
+        },
       }),
   },
   {

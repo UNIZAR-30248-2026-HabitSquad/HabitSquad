@@ -113,18 +113,29 @@ export function passwordField(options) {
   return field
 }
 
+export const primaryButtonClass = [
+  'flex h-12 w-full min-w-0 items-center justify-center rounded-2xl',
+  'border-b-4 border-accent-press bg-accent px-4',
+  'text-[0.9375rem] font-extrabold tracking-[0.06em] text-white uppercase',
+  'transition-[transform,border-width,background-color] duration-75 hover:bg-accent-hover',
+  'active:mb-1 active:translate-y-1 active:border-b-0',
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+  'disabled:cursor-wait disabled:opacity-60',
+].join(' ')
+
+export const secondaryButtonClass = [
+  'flex h-12 w-full min-w-0 items-center justify-center rounded-2xl',
+  'border-2 border-b-4 border-hairline bg-white/85 px-4',
+  'text-[0.9375rem] font-extrabold tracking-[0.06em] text-accent uppercase',
+  'transition-[transform,border-width,background-color] duration-75 hover:bg-white',
+  'active:mb-0.5 active:translate-y-0.5 active:border-b-2',
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+].join(' ')
+
 export function submitButton(label) {
   const button = document.createElement('button')
   button.type = 'submit'
-  button.className = [
-    'mt-2 flex h-12 w-full min-w-0 items-center justify-center rounded-2xl',
-    'border-b-4 border-accent-press bg-accent px-4',
-    'text-[0.9375rem] font-extrabold tracking-[0.06em] text-white uppercase',
-    'transition-[transform,border-width,background-color] duration-75 hover:bg-accent-hover',
-    'active:mb-1 active:translate-y-1 active:border-b-0',
-    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
-    'disabled:cursor-wait disabled:opacity-60',
-  ].join(' ')
+  button.className = `mt-2 ${primaryButtonClass}`
   button.textContent = label
   button.dataset.label = label
   return button

@@ -83,6 +83,7 @@ export function accessLayout({
   description,
   bubble,
   showAccountLinks = true,
+  hideGreetingOnShortScreens = false,
   cardClassName = 'glass w-full max-w-[25rem] rounded-[2rem] p-6 sm:p-7',
 }) {
   const main = element(
@@ -97,7 +98,10 @@ export function accessLayout({
   const backdrop = element('div', 'access-backdrop fixed inset-0 -z-10')
   backdrop.setAttribute('aria-hidden', 'true')
 
-  const greeting = element('div', 'mb-4 flex items-center gap-4')
+  const greeting = element(
+    'div',
+    `mb-4 flex items-center gap-4 ${hideGreetingOnShortScreens ? '[@media(max-height:720px)]:hidden' : ''}`,
+  )
   greeting.append(
     mascot(),
     element(
