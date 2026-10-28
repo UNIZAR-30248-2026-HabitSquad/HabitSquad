@@ -11,7 +11,9 @@ function fill(element, nombre) {
 }
 
 function submit(element) {
-  element.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }))
+  element.querySelector('form').dispatchEvent(
+    new Event('submit', { cancelable: true }),
+  )
 }
 
 function formAlertMessage(element) {
@@ -19,6 +21,9 @@ function formAlertMessage(element) {
     .map((alert) => alert.textContent)
     .find((text) => text)
 }
+
+const CONNECTION_ERROR =
+  'No se ha podido crear el escuadrón. Comprueba tu conexión e inténtalo de nuevo.'
 
 describe('validateSquadName', () => {
   it('acepta un nombre recortado', () => {
@@ -53,8 +58,9 @@ describe('crearEscuadronScreen', () => {
 
     expect(element.querySelector('h1').textContent).toBe('Crea tu escuadrón')
     expect(element.textContent).toContain('Nombre del escuadrón')
-    expect(element.querySelector('input[name="nombre"]').placeholder).toBe('Ej. Gym Bros')
-    expect(element.querySelector('input[name="nombre"]').maxLength).toBe(100)
+    const nameInput = element.querySelector('input[name="nombre"]')
+    expect(nameInput.placeholder).toBe('Ej. Gym Bros')
+    expect(nameInput.maxLength).toBe(100)
     expect(element.querySelector('button[type="submit"]').textContent).toBe(
       'Crear escuadrón',
     )
@@ -162,19 +168,13 @@ describe('crearEscuadronScreen', () => {
   })
 
   it('muestra el aviso si falla la conexión', async () => {
-    const onSubmit = vi.fn().mockRejectedValue(
-      new Error(
-        'No se ha podido crear el escuadrón. Comprueba tu conexión e inténtalo de nuevo.',
-      ),
-    )
+    const onSubmit = vi.fn().mockRejectedValue(new Error(CONNECTION_ERROR))
     const element = mount(crearEscuadronScreen({ onSubmit }))
     fill(element, 'Gym Bros')
     submit(element)
 
     await vi.waitFor(() => {
-      expect(formAlertMessage(element)).toBe(
-        'No se ha podido crear el escuadrón. Comprueba tu conexión e inténtalo de nuevo.',
-      )
+      expect(formAlertMessage(element)).toBe(CONNECTION_ERROR)
       expect(element.querySelector('button[type="submit"]').textContent).toBe(
         'Crear escuadrón',
       )

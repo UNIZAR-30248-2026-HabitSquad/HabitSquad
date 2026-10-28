@@ -44,11 +44,18 @@ describe('api', () => {
     localStorage.clear()
   })
 
-  it('un registro correcto llama a POST /api/auth/register/ y devuelve el usuario', async () => {
-    const userData = { id: 7, email: 'persona@example.com', date_joined: '2026-10-17T12:00:00Z' }
+  it('un registro correcto llama a POST /api/auth/register/', async () => {
+    const userData = {
+      id: 7,
+      email: 'persona@example.com',
+      date_joined: '2026-10-17T12:00:00Z',
+    }
     fetchMock.mockResolvedValue(jsonResponse(201, userData))
 
-    const result = await register({ email: 'persona@example.com', password: 'S0mething!Secure-497' })
+    const result = await register({
+      email: 'persona@example.com',
+      password: 'S0mething!Secure-497',
+    })
 
     expect(fetchMock).toHaveBeenCalledWith('/api/auth/register/', {
       method: 'POST',
@@ -179,7 +186,7 @@ describe('api', () => {
     })
   })
 
-  it('renueva el access una sola vez aunque fallen dos peticiones a la vez', async () => {
+  it('renueva el access una sola vez con peticiones concurrentes', async () => {
     saveSession({ access: 'old-access', refresh: 'old-refresh' })
     let refreshCalls = 0
     fetchMock.mockImplementation(async (path) => {
@@ -277,7 +284,7 @@ describe('api', () => {
     expect(resourceCalls).toBe(2)
   })
 
-  it('createSquad envía el nombre con autenticación y devuelve el escuadrón (201)', async () => {
+  it('createSquad envía el nombre autenticado y devuelve 201', async () => {
     saveSession({ access: 'access-token', refresh: 'refresh-token' })
     const escuadron = {
       id: 1,
@@ -298,23 +305,26 @@ describe('api', () => {
       }),
     )
     const [, options] = fetchMock.mock.calls[0]
-    expect(options.headers.get('Authorization')).toBe('Bearer access-token')
+    expect(options.headers.get('Authorization')).toBe(
+      'Bearer access-token',
+    )
   })
 
   it('createSquad propaga un error 400 de la API', async () => {
     saveSession({ access: 'access-token', refresh: 'refresh-token' })
-    fetchMock.mockResolvedValue(
-      jsonResponse(400, { nombre: ['Este campo no puede estar en blanco.'] }),
-    )
+    const payload = {
+      nombre: ['Este campo no puede estar en blanco.'],
+    }
+    fetchMock.mockResolvedValue(jsonResponse(400, payload))
 
     await expect(createSquad('')).rejects.toMatchObject({
       name: 'ApiError',
       status: 400,
-      data: { nombre: ['Este campo no puede estar en blanco.'] },
+      data: payload,
     })
   })
 
-  it('joinSquad envía el código con autenticación y devuelve el escuadrón', async () => {
+  it('joinSquad envía el código autenticado y devuelve el escuadrón', async () => {
     saveSession({ access: 'access-token', refresh: 'refresh-token' })
     const escuadron = {
       id: 1,
