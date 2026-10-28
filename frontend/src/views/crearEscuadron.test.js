@@ -181,6 +181,75 @@ describe('crearEscuadronScreen', () => {
     })
   })
 
-  // T17: prueba pendiente
-  it.todo('copia el código al portapapeles')
+  it('copia el código al portapapeles', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+
+    const squad = {
+      id: 1,
+      nombre: 'Gym Bros',
+      codigo_invitacion: 'X8K9QL',
+      creador_id: 7,
+      miembros: [{ usuario_id: 7, es_administrador: true }],
+    }
+    const onSubmit = vi.fn().mockResolvedValue(squad)
+    const element = mount(crearEscuadronScreen({ onSubmit }))
+    fill(element, 'Gym Bros')
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('h1').textContent).toBe('Escuadrón creado')
+    })
+
+    const copyButton = [...document.body.querySelectorAll('button')].find(
+      (button) => button.textContent === 'Copiar código',
+    )
+    copyButton.click()
+
+    await vi.waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith('X8K9QL')
+      expect(document.body.querySelector('[role="status"]').textContent).toBe(
+        'Código copiado.',
+      )
+    })
+  })
+
+  it('avisa si no se puede copiar el código', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: vi.fn().mockRejectedValue(new Error('denied')),
+      },
+    })
+
+    const squad = {
+      id: 1,
+      nombre: 'Gym Bros',
+      codigo_invitacion: 'X8K9QL',
+      creador_id: 7,
+      miembros: [{ usuario_id: 7, es_administrador: true }],
+    }
+    const onSubmit = vi.fn().mockResolvedValue(squad)
+    const element = mount(crearEscuadronScreen({ onSubmit }))
+    fill(element, 'Gym Bros')
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('h1').textContent).toBe('Escuadrón creado')
+    })
+
+    const copyButton = [...document.body.querySelectorAll('button')].find(
+      (button) => button.textContent === 'Copiar código',
+    )
+    copyButton.click()
+
+    await vi.waitFor(() => {
+      expect(document.body.querySelector('[role="status"]').textContent).toBe(
+        'No se ha podido copiar. Cópialo a mano.',
+      )
+    })
+  })
 })
