@@ -301,6 +301,19 @@ describe('api', () => {
     expect(options.headers.get('Authorization')).toBe('Bearer access-token')
   })
 
+  it('createSquad propaga un error 400 de la API', async () => {
+    saveSession({ access: 'access-token', refresh: 'refresh-token' })
+    fetchMock.mockResolvedValue(
+      jsonResponse(400, { nombre: ['Este campo no puede estar en blanco.'] }),
+    )
+
+    await expect(createSquad('')).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 400,
+      data: { nombre: ['Este campo no puede estar en blanco.'] },
+    })
+  })
+
   it('joinSquad envía el código con autenticación y devuelve el escuadrón', async () => {
     saveSession({ access: 'access-token', refresh: 'refresh-token' })
     const escuadron = {

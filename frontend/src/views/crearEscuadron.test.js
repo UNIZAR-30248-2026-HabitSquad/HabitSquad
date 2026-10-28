@@ -14,6 +14,12 @@ function submit(element) {
   element.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }))
 }
 
+function formAlertMessage(element) {
+  return [...element.querySelectorAll('[role="alert"]')]
+    .map((alert) => alert.textContent)
+    .find((text) => text)
+}
+
 describe('validateSquadName', () => {
   it('acepta un nombre recortado', () => {
     expect(validateSquadName('  Gym Bros  ')).toEqual({
@@ -124,7 +130,57 @@ describe('crearEscuadronScreen', () => {
     expect(element.isConnected).toBe(false)
   })
 
-  // T17: pruebas pendientes
-  it.todo('muestra el error del servidor y reactiva el botón')
+  it('muestra el error del servidor y reactiva el botón', async () => {
+    let rejectSubmit
+    const onSubmit = vi.fn(
+      () =>
+        new Promise((_, reject) => {
+          rejectSubmit = reject
+        }),
+    )
+    const element = mount(crearEscuadronScreen({ onSubmit }))
+    const submitButton = element.querySelector('button[type="submit"]')
+    const nameInput = element.querySelector('input[name="nombre"]')
+
+    fill(element, 'Gym Bros')
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(submitButton.disabled).toBe(true)
+      expect(submitButton.textContent).toBe('Creando…')
+    })
+
+    rejectSubmit(new Error('Los datos enviados no son válidos.'))
+
+    await vi.waitFor(() => {
+      expect(formAlertMessage(element)).toBe('Los datos enviados no son válidos.')
+      expect(submitButton.disabled).toBe(false)
+      expect(submitButton.textContent).toBe('Crear escuadrón')
+      expect(element.querySelector('form')).not.toBeNull()
+      expect(document.activeElement).toBe(nameInput)
+    })
+  })
+
+  it('muestra el aviso si falla la conexión', async () => {
+    const onSubmit = vi.fn().mockRejectedValue(
+      new Error(
+        'No se ha podido crear el escuadrón. Comprueba tu conexión e inténtalo de nuevo.',
+      ),
+    )
+    const element = mount(crearEscuadronScreen({ onSubmit }))
+    fill(element, 'Gym Bros')
+    submit(element)
+
+    await vi.waitFor(() => {
+      expect(formAlertMessage(element)).toBe(
+        'No se ha podido crear el escuadrón. Comprueba tu conexión e inténtalo de nuevo.',
+      )
+      expect(element.querySelector('button[type="submit"]').textContent).toBe(
+        'Crear escuadrón',
+      )
+    })
+  })
+
+  // T17: prueba pendiente
   it.todo('copia el código al portapapeles')
 })
