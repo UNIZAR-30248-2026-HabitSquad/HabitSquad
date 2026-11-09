@@ -2,7 +2,7 @@ import { ApiError, getDailyHabit, getSquad, logout, uploadProof } from '../api.j
 import { appLayout } from '../components/appLayout.js'
 import { accountMenu } from '../components/accountMenu.js'
 import { element } from '../components/dom.js'
-import { habitoCard, invitaCard, miembrosCard } from '../components/panel/index.js'
+import { habitoCard, hoyCard, invitaCard, miembrosCard } from '../components/panel/index.js'
 import { habitText } from './habitoDiario.js'
 
 function tarjetaHabito({ habito, onElegirHabito, onVerPrueba, subirFoto }) {
@@ -92,8 +92,9 @@ export function panelSeleccionadoScreen({ navigate, api = { getSquad, getDailyHa
             if (root.isConnected) abrirPrueba({ pruebaId: proof.id })
           },
         }),
-        miembrosCard({ miembros, className: 'col-span-2', onVerFoto: abrirPrueba, onVotar: abrirPrueba }),
-        invitaCard({ codigo: squad.codigo_invitacion, libres: 5 - squad.miembros.length }))
+        hoyCard({ miembros, className: 'col-span-2 lg:col-span-1' }),
+        invitaCard({ codigo: squad.codigo_invitacion, libres: 5 - squad.miembros.length }),
+        miembrosCard({ miembros, className: 'col-span-2', onVerFoto: abrirPrueba, onVotar: abrirPrueba }))
       back.classList.add('col-span-2')
       root.replaceChildren(appLayout({ active: 'escuadron', kicker: 'Escuadrón', title: squad.nombre, body: content,
         trailing: [accountMenu({ onLogout: async () => { await logout(); navigate('/login') } })] }))
