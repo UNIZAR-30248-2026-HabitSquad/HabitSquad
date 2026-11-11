@@ -4,6 +4,17 @@ import { menuScreen } from './menu.js'
 afterEach(() => { document.body.replaceChildren() })
 
 describe('menuScreen', () => {
+  it('muestra la barra de navegación con Escuadrón activo', () => {
+    const menu = menuScreen({ loadSquads: () => new Promise(() => {}) })
+    const navs = menu.querySelectorAll('nav[aria-label="Secciones"]')
+    expect(navs).toHaveLength(2)
+    expect([...navs[0].children].map((item) => item.textContent)).toEqual(['Escuadrón', 'Racha', 'Alertas', 'Mi hábito'])
+    expect([...navs[1].children].map((item) => item.textContent)).toEqual(['Escuadrón', 'Racha', 'Alertas'])
+    expect([...menu.querySelectorAll('[aria-current="page"]')].map((item) => item.textContent)).toEqual(['Escuadrón', 'Escuadrón'])
+    expect(menu.querySelector('aside a[href="/"]').textContent).toBe('HabitSquad')
+    expect(menu.querySelector('.squad-nav')).toBeNull()
+  })
+
   it('mantiene las acciones de crear y unirse disponibles mientras carga la lista', () => {
     const menu = menuScreen({ loadSquads: () => new Promise(() => {}) })
     expect(menu.querySelector('[role="status"]').textContent).toContain('Cargando')

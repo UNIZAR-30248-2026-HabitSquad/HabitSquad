@@ -489,6 +489,8 @@
     color: var(--squad-text);
     background: radial-gradient(ellipse at 5% 5%, #ffdcc6 0, transparent 38%), radial-gradient(ellipse at 95% 90%, #d6c8ff 0, transparent 45%), #ece8f6;
   }
+  /* Dentro de appLayout el fondo lo pinta .app-backdrop; aquí solo hacen falta los tokens. */
+  .squad-page.squad-in-app { background: transparent; }
   .squad-muted { color: var(--squad-muted); }
   .squad-card { background: var(--squad-card); border-radius: 1.75rem; box-shadow: 0 12px 32px -22px #39237066; }
   .squad-nav { background: rgb(255 255 255 / .55); border: 1px solid rgb(255 255 255 / .6); backdrop-filter: blur(18px); }
