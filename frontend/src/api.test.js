@@ -14,7 +14,6 @@ import {
   refreshSession,
   register,
   savePushSubscription,
-  sendTouch,
 } from './api.js'
 import { getSession, hasSession, saveSession } from './session.js'
 
@@ -48,47 +47,6 @@ describe('api', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     localStorage.clear()
-  })
-
-  it('envía un toque autenticado con el destinatario y el texto del contrato del backend', async () => {
-    saveSession({ access: 'access-toque', refresh: 'refresh-toque' })
-    const resultado = { id: 4, fecha: '2026-11-28', enviado: true }
-    fetchMock.mockResolvedValue(jsonResponse(201, resultado))
-    await expect(sendTouch({ squadId: '7', userId: 12, messageId: 'personalizado', text: '  ¡Vamos juntos!  ' }))
-      .resolves.toEqual(resultado)
-    const [url, opciones] = fetchMock.mock.calls[0]
-    expect(url).toBe('/api/escuadrones/7/toques/')
-    expect(opciones.method).toBe('POST')
-    expect(opciones.headers.get('Authorization')).toBe('Bearer access-toque')
-    expect(opciones.headers.get('Content-Type')).toBe('application/json')
-    expect(JSON.parse(opciones.body)).toEqual({ destinatario_id: 12, mensaje: '¡Vamos juntos!' })
-  })
-
-  it.each([400, 403, 404, 409])('propaga el error %s del envío con su detalle', async (status) => {
-    saveSession({ access: 'access', refresh: 'refresh' })
-    const datos = { detail: 'El destinatario ya ha recibido un toque hoy.' }
-    fetchMock.mockResolvedValue(jsonResponse(status, datos))
-    await expect(sendTouch({ squadId: 7, userId: 12, text: '¡Ánimo!' }))
-      .rejects.toMatchObject({ name: 'ApiError', status, data: datos })
-  })
-
-  it('renueva el JWT caducado y reintenta el mismo toque una sola vez', async () => {
-    saveSession({ access: 'viejo', refresh: 'refresh-viejo' })
-    fetchMock.mockResolvedValueOnce(jsonResponse(401))
-      .mockResolvedValueOnce(jsonResponse(200, { access: 'nuevo', refresh: 'refresh-nuevo' }))
-      .mockResolvedValueOnce(jsonResponse(201, { id: 4, fecha: '2026-11-28', enviado: true }))
-    await sendTouch({ squadId: 7, userId: 12, text: 'Un paso más.' })
-    expect(fetchMock).toHaveBeenCalledTimes(3)
-    expect(fetchMock.mock.calls[1][0]).toBe('/api/auth/token/refresh/')
-    expect(fetchMock.mock.calls[2][1].headers.get('Authorization')).toBe('Bearer nuevo')
-    expect(fetchMock.mock.calls[2][1].body).toBe(fetchMock.mock.calls[0][1].body)
-  })
-
-  it('no confirma un toque si el servidor no confirma su envío', async () => {
-    saveSession({ access: 'access', refresh: 'refresh' })
-    fetchMock.mockResolvedValue(jsonResponse(201, { enviado: false }))
-    await expect(sendTouch({ squadId: 7, userId: 12, text: '¡Ánimo!' }))
-      .rejects.toThrow('El servidor no ha confirmado el envío del toque.')
   })
 
   it('un registro correcto llama a POST /api/auth/register/', async () => {

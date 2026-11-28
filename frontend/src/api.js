@@ -158,18 +158,6 @@ export async function getSquad(squadId) {
   return readJson(response)
 }
 
-export async function sendTouch({ squadId, userId, text }) {
-  const response = await authFetch(`/api/escuadrones/${squadId}/toques/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ destinatario_id: userId, mensaje: text.trim() }),
-  })
-  const data = await readJson(response)
-  if (!response.ok) throw new ApiError(response.status, data)
-  if (data?.enviado !== true) throw new Error('El servidor no ha confirmado el envío del toque.')
-  return data
-}
-
 export async function getSquadConfiguration(squadId) {
   const response = await authFetch(`/api/escuadrones/${squadId}/configuracion/`)
   if (!response.ok) throw new ApiError(response.status, await readJson(response))
