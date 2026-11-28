@@ -17,6 +17,7 @@ from escuadrones.models import Escuadron, Membresia
 
 from .serializers import (
     ErrorDetalleToqueSerializer,
+    ErrorToqueSerializer,
     ToqueCreateSerializer,
     ToqueResponseSerializer,
 )
@@ -39,10 +40,10 @@ class ToqueView(APIView):
                 description="Toque registrado y enviado por Web Push.",
             ),
             400: OpenApiResponse(
-                response=ErrorDetalleToqueSerializer,
+                response=ErrorToqueSerializer,
                 description=(
-                    "Autotoque, destinatario sin tarea pendiente, o falta de "
-                    "suscripción/permisos para recibir Web Push."
+                    "Body inválido, autotoque, destinatario sin tarea pendiente "
+                    "o falta de suscripción/permisos para recibir Web Push."
                 ),
             ),
             401: OpenApiResponse(
@@ -68,7 +69,13 @@ class ToqueView(APIView):
             "permite enviarse un toque a sí mismo. Se admite un toque por "
             "destinatario y fecha local (Europe/Madrid), global entre "
             "escuadrones. El destinatario debe tener una suscripción Web "
-            "Push activa."
+            "Push activa. La notificación emergente se entrega fuera de HTTP "
+            "mediante el service worker con este payload:\n\n"
+            "```json\n"
+            '{"title": "Toque de {nickname}", "body": "{mensaje}"}\n'
+            "```\n\n"
+            "El navegador debe tener permiso para mostrar notificaciones. "
+            "Repetir el envío el mismo día devuelve 409 y no crea otro toque."
         ),
         examples=[
             OpenApiExample(

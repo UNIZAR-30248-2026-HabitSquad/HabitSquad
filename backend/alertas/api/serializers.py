@@ -96,3 +96,16 @@ class ToqueResponseSerializer(serializers.Serializer):
 @extend_schema_serializer(component_name="ErrorDetalleToque")
 class ErrorDetalleToqueSerializer(serializers.Serializer):
     detail = serializers.CharField()
+
+
+@extend_schema_serializer(component_name="ErrorToque")
+class ErrorToqueSerializer(serializers.Serializer):
+    destinatario_id = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+    )
+    mensaje = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+    )
+    detail = serializers.CharField(required=False)
