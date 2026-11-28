@@ -71,3 +71,28 @@ class ErrorValidacionAlertasSerializer(serializers.Serializer):
 @extend_schema_serializer(component_name="ErrorDetalleAlertas")
 class ErrorDetalleAlertasSerializer(serializers.Serializer):
     detail = serializers.CharField()
+
+
+@extend_schema_serializer(component_name="ToqueCreate")
+class ToqueCreateSerializer(serializers.Serializer):
+    destinatario_id = serializers.IntegerField(
+        min_value=1,
+        help_text="Identificador del compañero del escuadrón que recibirá el toque.",
+    )
+    mensaje = serializers.CharField(
+        allow_blank=False,
+        trim_whitespace=True,
+        help_text="Mensaje libre que aparecerá en la notificación Web Push.",
+    )
+
+
+@extend_schema_serializer(component_name="ToqueResponse")
+class ToqueResponseSerializer(serializers.Serializer):
+    id = serializers.IntegerField(help_text="Identificador del toque registrado.")
+    fecha = serializers.DateField(help_text="Fecha local del envío (Europe/Madrid).")
+    enviado = serializers.BooleanField(help_text="Indica que Web Push fue aceptado.")
+
+
+@extend_schema_serializer(component_name="ErrorDetalleToque")
+class ErrorDetalleToqueSerializer(serializers.Serializer):
+    detail = serializers.CharField()
