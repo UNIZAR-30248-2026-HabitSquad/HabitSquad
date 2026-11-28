@@ -13,14 +13,14 @@
 
       const grupos = [
         { id: 1, nombre: 'Los imparables', miembros: [
-          { usuario_id: 1, nickname: 'Lucía', es_usuario: true },
-          { usuario_id: 2, nickname: 'Álex' },
-          { usuario_id: 3, nickname: 'Marta' },
-          { usuario_id: 4, nickname: 'Pablo', prueba_hoy: { estado: 'cumplido' } },
+          { usuario_id: 1, nickname: 'Lucía', es_usuario: true, habito: { opcion: 'leer' } },
+          { usuario_id: 2, nickname: 'Álex', habito: { opcion: 'leer' } },
+          { usuario_id: 3, nickname: 'Marta', habito: { opcion: 'leer' }, prueba_hoy: { estado: 'pendiente' } },
+          { usuario_id: 4, nickname: 'Pablo', habito: { opcion: 'leer' }, prueba_hoy: { estado: 'cumplido' } },
         ] },
         { id: 2, nombre: 'Un poquito cada día', miembros: [
-          { usuario_id: 1, nickname: 'Lucía', es_usuario: true },
-          { usuario_id: 5, nickname: 'Sofía' },
+          { usuario_id: 1, nickname: 'Lucía', es_usuario: true, habito: { opcion: 'leer' } },
+          { usuario_id: 5, nickname: 'Sofía', habito: { opcion: 'leer' } },
         ] },
       ]
       let estadoAvisos = 'desactivado'

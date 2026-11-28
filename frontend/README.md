@@ -214,20 +214,34 @@ añadida a la pantalla de inicio. Chrome no permite avisos push en ventanas de
 incógnito.
 
 La sección de toques consulta los escuadrones y sus miembros reales, permite
-elegir a un compañero sin prueba y seleccionar entre tres mensajes predefinidos,
+elegir a un compañero con hábito pendiente y seleccionar entre tres mensajes predefinidos,
 sin emojis, o escribir un mensaje personalizado. El campo «Tu mensaje» permite
 editar también las plantillas; el borrador personalizado se conserva al alternar
 entre opciones. La vista previa refleja el destinatario y el texto editado y no
-se permite enviar un mensaje vacío. Se excluye al propio
-usuario y se deshabilitan los compañeros que ya han subido su prueba.
+se permite enviar un mensaje vacío. Se excluye al propio usuario y se deshabilitan
+los compañeros sin hábito o con estado `cumplido` o `no_cumplido`. Una prueba en
+estado `pendiente` sí permite recibir toques, según el contrato del backend.
 
-El backend todavía no ofrece un endpoint para enviar toques: en la aplicación
-«Dar toque» permanece deshabilitado y se explica su disponibilidad. El componente
-`src/components/toques.js` admite un adaptador `sendTouch({ squadId, userId,
-messageId, text })` para conectarlo cuando se acuerde el contrato. Bloquea controles
-durante el envío, conserva la selección si falla y confirma solo al resolver.
+`src/api.js` conecta el envío con `POST /api/escuadrones/{id}/toques/`, usando
+`authFetch`, JWT y renovación de sesión. Envía `destinatario_id` y `mensaje`
+(el texto final editado); el identificador de plantilla solo se usa en la UI.
+Solo confirma el envío si el servidor devuelve `enviado: true`. El contrato y
+los requisitos de suscripción Web Push del destinatario están en
+[`docs/ALERTAS.md`](../docs/ALERTAS.md#toques-interpersonales).
+
+«Dar toque» se oculta mientras no haya un destinatario elegible. Se vuelve a
+comprobar el detalle antes de enviar y se actualiza mediante el WebSocket del
+escuadrón: si el compañero cumple con la vista abierta, se oculta el botón sin
+borrar el borrador. La conexión se cierra al cambiar de escuadrón o salir.
+Los controles se bloquean durante el envío y los errores conservan el texto.
+Un `409` explica el límite diario y bloquea al destinatario en todos los
+escuadrones de la vista hasta el día siguiente, según `Europe/Madrid`.
+
 `previews/alertas.html`, disponible con `npm run dev`, permite probar todo el
 recorrido sin sesión con datos y envíos de ejemplo, sin notificaciones reales.
+Las pruebas de `src/components/toques.test.js`, `src/views/alertas.integracion.test.js`
+y `src/api.test.js` cubren ocultación al cumplir, elegibilidad, mensajes,
+errores, límite diario y peticiones autenticadas con el adaptador real.
 
 ## Estructura
 

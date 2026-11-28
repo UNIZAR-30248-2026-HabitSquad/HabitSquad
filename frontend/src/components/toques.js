@@ -4,6 +4,7 @@ import { fotoAvatar } from './avatar.js'
 import { icon } from './icons.js'
 import { PROFILE_BUTTON } from './perfil.js'
 import { rememberedSquad } from '../session.js'
+import { ApiError } from '../api.js'
 
 export const MENSAJES_TOQUE = [
   { id: 'animo', titulo: '¡Tú puedes!', texto: 'Un pasito más para cumplir tu hábito. ¡Tú puedes!' },
@@ -13,8 +14,23 @@ export const MENSAJES_TOQUE = [
 
 let nextId = 0
 
-// El envío se inyecta cuando exista su contrato; la aplicación no simula entregas.
-export function toquesPanel({ api, demo = false } = {}) {
+function pendiente(miembro) {
+  return miembro && !miembro.es_usuario && miembro.habito != null
+    && [undefined, null, 'pendiente'].includes(miembro.prueba_hoy?.estado)
+}
+
+function mensajeError(causa) {
+  if (causa instanceof ApiError) {
+    if (causa.status === 401) return 'Tu sesión ha caducado. Vuelve a iniciar sesión.'
+    const datos = causa.data
+    const detalle = [datos?.detail, datos?.mensaje, datos?.destinatario_id].flat()
+      .find((valor) => typeof valor === 'string' && valor.trim())
+    if (detalle) return detalle
+  }
+  return 'No se ha podido enviar el toque. Conservamos tu selección para que puedas reintentarlo.'
+}
+
+export function toquesPanel({ api, demo = false, conectar, ahora = () => new Date() } = {}) {
   const prefix = `toques-${++nextId}`
   let miembros = []
   let destinatario = null
@@ -22,7 +38,11 @@ export function toquesPanel({ api, demo = false } = {}) {
   let borrador = mensaje.texto
   let enviando = false
   let carga = 0
-  const enviados = new Set()
+  const enviados = new Map()
+  let conexion = null
+  let observador = null
+  let refrescando = false
+  let refrescoPendiente = false
 
   const estado = element('p', 'touch-status', 'Cargando tus escuadrones…')
   estado.setAttribute('role', 'status')
@@ -103,7 +123,16 @@ export function toquesPanel({ api, demo = false } = {}) {
     actualizar()
   })
 
-  function clave(miembro) { return `${selector.value}:${miembro.usuario_id}` }
+  function fechaHoy() {
+    const partes = new Intl.DateTimeFormat('es-ES', {
+      timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).formatToParts(ahora())
+    const parte = (tipo) => partes.find(({ type }) => type === tipo).value
+    return `${parte('year')}-${parte('month')}-${parte('day')}`
+  }
+
+  // El límite del backend es global por destinatario y día, no por escuadrón.
+  function clave(miembro, fecha = fechaHoy()) { return `${miembro.usuario_id}:${fecha}` }
 
   function actualizar() {
     previewNombre.textContent = destinatario ? `Para ${destinatario.nickname || destinatario.nombre || 'tu compañero'}` : 'Para tu compañero'
@@ -112,6 +141,7 @@ export function toquesPanel({ api, demo = false } = {}) {
       ? `En ${selector.selectedOptions[0]?.textContent ?? 'tu escuadrón'}`
       : 'Elige a quién quieres animar.'
     enviar.disabled = enviando || !mensaje.texto.trim() || !destinatario || !api.sendTouch || enviados.has(clave(destinatario))
+    enviar.hidden = !pendiente(destinatario)
     enviar.replaceChildren(icon(enviando ? 'clock' : 'bell'), enviando ? 'Enviando…' : 'Dar toque')
   }
 
@@ -123,7 +153,7 @@ export function toquesPanel({ api, demo = false } = {}) {
     }
     for (const miembro of otros) {
       const enviado = enviados.has(clave(miembro))
-      const noDisponible = Boolean(miembro.prueba_hoy) || enviado
+      const noDisponible = !pendiente(miembro) || enviado
       const nombre = miembro.nickname || miembro.nombre || `Miembro ${miembro.usuario_id}`
       const radio = element('input', 'touch-radio')
       radio.type = 'radio'
@@ -142,15 +172,66 @@ export function toquesPanel({ api, demo = false } = {}) {
       lista.append(element('label', 'touch-member', radio,
         avatar,
         element('span', 'min-w-0', element('span', 'block break-words font-extrabold', nombre),
-          element('span', `block text-sm font-bold ${noDisponible ? 'text-positive' : 'text-ink-muted'}`,
-            enviado ? (demo ? 'Toque de ejemplo listo' : 'Toque enviado') : miembro.prueba_hoy ? 'Ya ha subido su prueba' : 'Sin prueba todavía'))))
+          element('span', `block text-sm font-bold ${miembro.prueba_hoy?.estado === 'cumplido' ? 'text-positive' : 'text-ink-muted'}`,
+            enviado ? enviados.get(clave(miembro)) : miembro.habito == null ? 'Sin hábito configurado'
+              : miembro.prueba_hoy?.estado === 'cumplido' ? 'Hábito cumplido'
+                : miembro.prueba_hoy?.estado === 'no_cumplido' ? 'Día cerrado sin cumplir'
+                  : miembro.prueba_hoy ? 'Prueba pendiente de validar' : 'Sin prueba todavía'))))
     }
-    if (otros.length && otros.every((miembro) => miembro.prueba_hoy)) {
-      lista.append(element('p', 'touch-empty', '¡Todo el equipo ha subido su prueba! Hoy no hace falta ningún toque.'))
+    if (otros.length && otros.every((miembro) => miembro.prueba_hoy?.estado === 'cumplido')) {
+      lista.append(element('p', 'touch-empty', '¡Todo el equipo ha cumplido! Hoy no hace falta ningún toque.'))
+    }
+  }
+
+  function cerrarConexion() {
+    conexion?.cerrar()
+    conexion = null
+    observador?.disconnect()
+    observador = null
+  }
+
+  function conectarGrupo() {
+    if (!conectar || !root.isConnected) return
+    conexion = conectar(selector.value, { alActualizar: refrescar, alSuscribirse: refrescar })
+    observador = new MutationObserver(() => {
+      if (root.isConnected) return
+      cerrarConexion()
+      carga += 1
+    })
+    observador.observe(document.body, { childList: true, subtree: true })
+  }
+
+  // Mantiene el borrador y oculta la acción si el destinatario cumple con la vista abierta.
+  async function refrescar() {
+    if (enviando || refrescando) { refrescoPendiente = true; return }
+    const turno = carga
+    refrescando = true
+    try {
+      const grupo = await api.getSquad(selector.value)
+      if (turno !== carga) return
+      miembros = grupo.miembros
+      destinatario = miembros.find((miembro) => miembro.usuario_id === destinatario?.usuario_id) ?? null
+      if (!pendiente(destinatario)) destinatario = null
+      pintarMiembros()
+      actualizar()
+    } catch (causa) {
+      if (turno !== carga) return
+      if (causa instanceof ApiError && [403, 404].includes(causa.status)) {
+        miembros = []
+        destinatario = null
+        cerrarConexion()
+        pintarMiembros()
+        actualizar()
+      }
+      error.textContent = 'No se ha podido actualizar el escuadrón. Comprueba la conexión o elige otro.'
+    } finally {
+      refrescando = false
+      if (refrescoPendiente) { refrescoPendiente = false; void refrescar() }
     }
   }
 
   async function cargarMiembros() {
+    cerrarConexion()
     const turno = ++carga
     destinatario = null
     miembros = []
@@ -165,6 +246,7 @@ export function toquesPanel({ api, demo = false } = {}) {
       miembros = grupo.miembros
       estado.textContent = ''
       pintarMiembros()
+      conectarGrupo()
     } catch {
       if (turno !== carga) return
       estado.textContent = ''
@@ -218,13 +300,32 @@ export function toquesPanel({ api, demo = false } = {}) {
     editor.disabled = true
     actualizar()
     try {
-      await api.sendTouch({ squadId: grupo, userId: receptor.usuario_id, messageId: elegido, text: texto })
-      enviados.add(`${grupo}:${receptor.usuario_id}`)
+      // La elegibilidad puede cambiar entre la selección y el clic.
+      const actual = await api.getSquad(grupo)
+      miembros = actual.miembros
+      if (!pendiente(miembros.find((miembro) => miembro.usuario_id === receptor.usuario_id))) {
+        destinatario = null
+        estado.textContent = 'Este compañero ya no tiene una tarea pendiente hoy.'
+        return
+      }
+      const resultado = await api.sendTouch({ squadId: grupo, userId: receptor.usuario_id, messageId: elegido, text: texto })
+      enviados.set(clave(receptor, resultado?.fecha ?? fechaHoy()), demo ? 'Toque de ejemplo listo' : 'Toque enviado')
       estado.textContent = demo ? `Toque de ejemplo preparado para ${receptor.nickname || receptor.nombre}. No se ha enviado.`
         : `¡Toque enviado a ${receptor.nickname || receptor.nombre}!`
       destinatario = null
-    } catch {
-      error.textContent = 'No se ha podido enviar el toque. Conservamos tu selección para que puedas reintentarlo.'
+    } catch (causa) {
+      error.textContent = mensajeError(causa)
+      if (causa instanceof ApiError && causa.status === 409) {
+        enviados.set(clave(receptor), 'Ya ha recibido un toque hoy')
+        destinatario = null
+      } else if (causa instanceof ApiError && [403, 404].includes(causa.status)) {
+        miembros = []
+        destinatario = null
+        cerrarConexion()
+      } else if (causa instanceof ApiError && causa.status === 400) {
+        // Puede haberse cumplido mientras el servidor procesaba el envío.
+        refrescoPendiente = true
+      }
     } finally {
       enviando = false
       selector.disabled = false
@@ -232,6 +333,7 @@ export function toquesPanel({ api, demo = false } = {}) {
       editor.disabled = false
       pintarMiembros()
       actualizar()
+      if (refrescoPendiente) { refrescoPendiente = false; void refrescar() }
     }
   }
 

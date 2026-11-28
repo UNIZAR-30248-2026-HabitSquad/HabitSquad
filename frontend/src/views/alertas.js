@@ -1,5 +1,6 @@
 import '../toques.css'
-import { ApiError, getProfile, getSquad, listSquads } from '../api.js'
+import { ApiError, getProfile, getSquad, listSquads, sendTouch } from '../api.js'
+import { conectarEscuadron } from '../tiempoReal.js'
 import { crearAvisos } from '../avisos.js'
 import { accountMenu } from '../components/accountMenu.js'
 import { appLayout } from '../components/appLayout.js'
@@ -84,10 +85,11 @@ function muestraAviso() {
 
 export function alertasScreen({
   onLogout,
-  api = { getProfile, getSquad, listSquads },
+  api = { getProfile, getSquad, listSquads, sendTouch },
   avisos = crearAvisos(),
   almacen = window.localStorage,
   demo = false,
+  conectar = conectarEscuadron,
 } = {}) {
   const perfil = api.getProfile()
 
@@ -127,7 +129,7 @@ export function alertasScreen({
       element('p', 'mt-2 font-semibold text-ink-muted', 'Recuerda tu hábito y anima a quienes lo comparten contigo.')))
   const body = element('div', 'alerts-content', intro,
     demo && element('p', 'text-sm font-bold text-accent', 'Vista de ejemplo · Ningún toque ni aviso se envía fuera de esta pantalla.'),
-    toquesPanel({ api, demo }),
+    toquesPanel({ api, demo, conectar: demo ? undefined : conectar }),
     element('div', 'grid gap-4 lg:grid-cols-4', permiso, tuAviso))
   const cuenta = accountMenu({ loadProfile: () => perfil, onLogout })
   const volver = element('a', 'glass grid h-11 w-11 shrink-0 place-items-center rounded-full text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent', icon('back'))
