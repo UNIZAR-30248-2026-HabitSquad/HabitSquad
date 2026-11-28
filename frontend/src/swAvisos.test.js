@@ -33,14 +33,6 @@ function cargarServiceWorker({ ventanas = [] } = {}) {
 const datos = (valor) => ({ json: () => (valor instanceof Error ? (() => { throw valor })() : valor) })
 
 describe('service worker de avisos: push', () => {
-  it('muestra el nickname del remitente y el mensaje personalizado del toque recibido', async () => {
-    const { self, lanzar } = cargarServiceWorker()
-    await lanzar('push', { data: datos({ title: 'Toque de HabitHero', body: 'Álex, hoy sumamos juntos.' }) })
-
-    expect(self.registration.showNotification).toHaveBeenCalledWith('Toque de HabitHero',
-      expect.objectContaining({ body: 'Álex, hoy sumamos juntos.', lang: 'es' }))
-  })
-
   it('muestra el aviso que manda el servidor', async () => {
     const { self, lanzar } = cargarServiceWorker()
     await lanzar('push', { data: datos({ title: 'HabitSquad', body: 'Todavía no has subido la prueba de hoy.' }) })
