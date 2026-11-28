@@ -30,7 +30,7 @@ export function panelSeleccionadoScreen({
   const navItems = squadNavigation(id)
   const sidebarNavItems = navItems.filter(({ id }) => id !== 'racha' && id !== 'alertas')
   const root = element('div')
-  const back = element('a', `${ANCHO_COMPLETO} inline-flex min-h-11 items-center font-bold text-accent`, '← Mis escuadrones')
+  const back = element('a', `${ANCHO_COMPLETO} inline-flex min-h-11 items-center font-bold text-accent`, '← Buscar escuadrones')
   back.href = '/escuadrones'
   back.dataset.link = ''
   const status = element('p', `${ANCHO_COMPLETO} font-semibold text-ink-muted empty:hidden`)
