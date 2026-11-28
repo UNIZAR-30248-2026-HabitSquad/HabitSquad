@@ -135,10 +135,18 @@ export function destinoTrasAcceso() {
 
 function selectorEscuadron(navigate) {
   return selectorEscuadronScreen({
+    navigate,
     loadProfile: getProfile,
     onLogout: async () => {
       await logout()
       navigate('/login')
+    },
+    onJoin: async (codigo) => {
+      try {
+        return await joinSquad(codigo)
+      } catch (error) {
+        throw new Error(joinSquadErrorMessage(error), { cause: error })
+      }
     },
   })
 }
@@ -345,7 +353,7 @@ export const routes = [
   },
   {
     path: '/escuadrones',
-    title: 'Mis escuadrones',
+    title: 'Buscar escuadrones',
     private: true,
     view: ({ navigate } = {}) => selectorEscuadron(navigate),
   },

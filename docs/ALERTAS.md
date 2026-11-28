@@ -37,6 +37,83 @@ es el mismo que el cierre diario
 | `GET` | `/api/alertas/vapid-public-key/` | Pública | Devuelve la clave pública VAPID para el cliente |
 | `POST` | `/api/alertas/suscripcion/` | JWT | Registra o actualiza la suscripción Web Push del usuario |
 | `DELETE` | `/api/alertas/suscripcion/` | JWT | Elimina la suscripción Web Push del usuario |
+| `POST` | `/api/escuadrones/{escuadron_id}/toques/` | JWT | Envía un toque Web Push a un compañero pendiente |
+
+## Toques interpersonales
+
+`POST /api/escuadrones/{escuadron_id}/toques/` permite que un miembro envíe
+una notificación Web Push a un compañero del mismo escuadrón. Requiere JWT y
+que remitente y destinatario pertenezcan al escuadrón. No se permite el
+autotoque.
+
+### Petición
+
+```http
+POST /api/escuadrones/1/toques/
+Authorization: Bearer <access>
+Content-Type: application/json
+
+{
+  "destinatario_id": 12,
+  "mensaje": "¡Ánimo, tú puedes!"
+}
+```
+
+`destinatario_id` identifica al compañero y `mensaje` es texto libre, elegido
+por el remitente en el momento del envío. Ambos campos son obligatorios; el
+mensaje no puede estar vacío.
+
+### Elegibilidad y límite
+
+- El destinatario debe tener un hábito diario configurado en el escuadrón y
+  seguir pendiente en la fecha local actual. Se considera pendiente si aún no
+  existe registro de hoy o si el registro permanece en estado `pendiente`.
+- Si el destinatario ya está `cumplido` o `no_cumplido`, el toque se rechaza.
+- Se registra como máximo un toque por destinatario y fecha local
+  (`Europe/Madrid`), global entre escuadrones. Un nuevo intento ese día
+  responde `409` y no genera otro envío.
+- El destinatario necesita una suscripción Web Push utilizable. El backend no
+  puede consultar directamente el permiso del navegador; detecta la ausencia
+  de suscripción o el fallo del envío push y rechaza la operación.
+
+### Respuesta de envío
+
+`201 Created`
+
+```json
+{
+  "id": 4,
+  "fecha": "2026-11-28",
+  "enviado": true
+}
+```
+
+### Notificación recibida
+
+La entrega al destinatario ocurre fuera de HTTP, mediante Web Push al service
+worker del navegador. Su payload tiene esta forma:
+
+```json
+{
+  "title": "Toque de HabitHero",
+  "body": "¡Ánimo, tú puedes!"
+}
+```
+
+`title` contiene el nickname del remitente y `body` contiene el mensaje
+elegido. El navegador debe tener permiso para mostrar la notificación
+emergente. No hay un endpoint HTTP de recepción; OpenAPI describe la operación
+de envío y documenta este payload de Web Push.
+
+### Errores
+
+| Código | Condición |
+| --- | --- |
+| `400 Bad Request` | Body inválido, autotoque, destinatario sin tarea pendiente, o ausencia/fallo de suscripción Web Push. |
+| `401 Unauthorized` | Falta el access token, es inválido o ha expirado. |
+| `403 Forbidden` | El remitente no pertenece al escuadrón. |
+| `404 Not Found` | El escuadrón no existe. |
+| `409 Conflict` | El destinatario ya recibió un toque en la fecha local actual. |
 
 ## Obtener la clave pública VAPID
 
